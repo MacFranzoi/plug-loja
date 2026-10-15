@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
-<link rel="stylesheet" href="../loja.css?v=202610151252">
+<link rel="stylesheet" href="../loja.css?v=202610151256">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Product", "name": "Realme P4 Lite", "brand": {"@type": "Brand", "name": "Realme"}, "image": "https://loja.plugshopping.com.br/img/realme-p4-lite.jpg", "description": "Realme P4 Lite a partir de R$ 1.399,99 no PIX, lacrado ou de vitrine, com nota fiscal. ", "offers": {"@type": "AggregateOffer", "priceCurrency": "BRL", "lowPrice": 1399.99, "highPrice": 1399.99, "offerCount": 1, "availability": "https://schema.org/InStock"}}</script>
 </head>
 <body class="temfixa">
@@ -53,7 +53,6 @@
   <p class="eyebrow">Ficha técnica</p>
   <h2 id="fTit"></h2>
   <div class="fgrid" id="fgrid"></div>
-  <p class="fonte" id="fonte"></p>
 </div></section>
 
 <footer class="foot"><div class="wrap">
@@ -122,7 +121,6 @@ if (!M.ficha) $("fichaBox").hidden = true;
 else {
   $("fTit").textContent = `${M.marca} ${M.nome}`;
   $("fgrid").innerHTML = M.ficha.grupos.map(g => `<div class="fbloco"><h3>${g.g}</h3><dl>${g.itens.map(([n, x]) => `<dt>${n}</dt><dd>${x}</dd>`).join("")}</dl></div>`).join("");
-  $("fonte").textContent = "Fonte: " + (M.ficha.fonte.startsWith("http") ? new URL(M.ficha.fonte).hostname.replace(/^www\.|^m\./, "") : M.ficha.fonte) + ". Confirme detalhes com a loja.";
 }
 </script>
 </body>
