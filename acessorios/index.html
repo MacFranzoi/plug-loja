@@ -480,14 +480,14 @@ async function estFicha(it,foto){await document.fonts.ready;
   try{const lg=await carrega("plug-marca.png");const h=44,w=lg.width*h/lg.height;rr(c,X,40,w+52,72,36);c.fillStyle=TINTA;c.fill();c.drawImage(lg,X+26,54,w,h);
     c.fillStyle=CINZA;c.font='800 26px Figtree';c.fillText("ACESSÓRIOS",X+w+72,86)}catch(e){}
   // foto (a que estava aparecendo), área branca como na ficha
-  const FH=760;c.fillStyle="#fff";c.fillRect(0,140,W,FH);
-  try{const f=await carrega(it.fs[foto]||it.f);const m=70,bw=W-2*m,bh=FH-2*m,k=Math.min(bw/f.width,bh/f.height);
-    c.drawImage(f,(W-f.width*k)/2,140+m+(bh-f.height*k)/2,f.width*k,f.height*k)}catch(e){}
+  const FH=740,FY=150;c.save();c.shadowColor="#00000022";c.shadowBlur=50;c.shadowOffsetY=18;rr(c,X,FY,LW,FH,48);c.fillStyle="#fff";c.fill();c.restore();
+  try{const f=await carrega(it.fs[foto]||it.f);const m=64,bw=LW-2*m,bh=FH-2*m-20,k=Math.min(bw/f.width,bh/f.height);
+    c.save();rr(c,X,FY,LW,FH,48);c.clip();c.drawImage(f,(W-f.width*k)/2,FY+m+(bh-f.height*k)/2,f.width*k,f.height*k);c.restore()}catch(e){}
   if(it.fs.length>1){const n=it.fs.length,tw=n*14+(n-1)*10+16;let x=(W-tw)/2;
-    it.fs.forEach((_,k)=>{const w=k===foto?30:14;rr(c,x,140+FH-34,w,14,7);c.fillStyle=k===foto?TINTA:"#d9d9d9";c.fill();x+=w+10})}
-  if(it.top){rr(c,X,170,270,56,16);c.fillStyle="#ff4d2e";c.fill();c.fillStyle="#fff";c.font='800 26px Figtree';c.fillText("🔥 MAIS VENDIDO",X+20,208)}
+    it.fs.forEach((_,k)=>{const w=k===foto?30:14;rr(c,x,FY+FH-40,w,14,7);c.fillStyle=k===foto?TINTA:"#d9d9d9";c.fill();x+=w+10})}
+  if(it.top){rr(c,X+28,FY+28,270,56,16);c.fillStyle="#ff4d2e";c.fill();c.fillStyle="#fff";c.font='800 26px Figtree';c.fillText("🔥 MAIS VENDIDO",X+48,FY+66)}
   // textos
-  let y=140+FH+70;const FIM=H-160;
+  let y=FY+FH+76;const FIM=H-160;
   c.fillStyle=CINZA;c.font='800 26px Figtree';c.fillText(it.cat.toUpperCase(),X,y);
   c.fillStyle=TINTA;c.font='800 62px "Bricolage Grotesque"';for(const l of quebra(c,it.n,LW,2)){y+=70;c.fillText(l,X,y)}
   y+=92;c.font='800 86px "Bricolage Grotesque"';c.fillText(brl(it.p),X-2,y);
