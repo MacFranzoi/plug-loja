@@ -108,6 +108,10 @@ img{display:block}
 .estilos{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 12px;justify-content:center}.estilos::-webkit-scrollbar{display:none}
 .estilos button{flex:none;border-radius:999px;padding:8px 14px;background:#fff;box-shadow:var(--sh);font:700 13px var(--body)}.estilos button.on{background:var(--ink);color:#fff}
 #prevImg{transition:opacity .2s}
+.selfotos{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:0 0 12px}.selfotos span{font:700 12px var(--body);color:var(--muted);width:100%;text-align:center}
+.selfotos button{position:relative;width:56px;height:56px;border-radius:12px;background:#fff;box-shadow:var(--sh);border:3px solid transparent;padding:3px}
+.selfotos button.on{border-color:var(--ink)}.selfotos img{width:100%;height:100%;object-fit:contain}
+.selfotos b{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:11px;background:var(--volt);color:var(--volt-ink);font:800 12px/22px var(--body);text-align:center}
 .dicaL{background:var(--volt);color:var(--volt-ink);border-radius:12px;padding:10px 12px;margin:0 0 12px;font-size:14px}.previa .bts .grande{height:48px}
 .menu .gerando{color:var(--muted);text-align:center;padding:10px;font-weight:700}
 .nfotos{position:absolute;top:48px;right:10px;background:#0000000f;font:700 11px var(--body);padding:3px 7px;border-radius:8px;color:#444}
@@ -293,7 +297,7 @@ footer .lj a{color:#fff;border:1px solid #ffffff2a;border-radius:12px;padding:9p
     <button class="op-wa" id="mWa"><i>💬</i>WhatsApp</button>
     <button class="op-ln" id="mLn"><i>🔗</i>Copiar link</button>
   </div>
-  <div class="previa" id="previa"><div class="estilos" id="estilos"></div><p class="dicaL" id="dicaLonga" hidden>👆 <b>Toque e segure na imagem</b> → <b>Compartilhar</b> → <b>Instagram</b> → Stories</p><img id="prevImg" alt="Prévia do stories"><div class="bts">
+  <div class="previa" id="previa"><div class="estilos" id="estilos"></div><div class="selfotos" id="selFotos"></div><p class="dicaL" id="dicaLonga" hidden>👆 <b>Toque e segure na imagem</b> → <b>Compartilhar</b> → <b>Instagram</b> → Stories</p><img id="prevImg" alt="Prévia do stories"><div class="bts">
     <button class="grande" id="stComp">📸 Postar no Instagram</button><a class="grande verde" id="stBaixa" download style="text-decoration:none">Baixar</a></div></div>
   <div class="gerando" id="gerando" hidden>Montando o stories…</div>
   <p class="nota" id="dicaMenu" style="text-align:center;margin-top:12px">Stories: no menu que abrir, toque em <b>Instagram</b> → <b>Stories</b>.</p>
@@ -441,7 +445,8 @@ $("pComp").innerHTML=COMP;
 let compIt=null,compFoto=0,stBlob=null;
 const linkDe=it=>location.origin+location.pathname+"#p="+it.slug;
 let stPronto=null;
-function abreComp(it,foto){compIt=it;compFoto=foto||0;stBlob=null;stPronto=stories(it,compFoto).then(b=>{if(compIt===it)stBlob=b;return b}).catch(()=>null);$("previa").classList.remove("on");$("gerando").hidden=true;
+let fotosSel=[0];
+function abreComp(it,foto){compIt=it;compFoto=foto||0;fotosSel=[compFoto];stBlob=null;stPronto=stories(it,fotosSel).then(b=>{if(compIt===it)stBlob=b;return b}).catch(()=>null);$("previa").classList.remove("on");$("gerando").hidden=true;
   $("menu").classList.add("on");$("fundo2").classList.add("on")}
 function fechaComp(){$("menu").classList.remove("on");$("fundo2").classList.remove("on")}
 $("fundo2").onclick=fechaComp;$("mFecha").onclick=fechaComp;
@@ -456,11 +461,16 @@ async function mandaInsta(){if(!podeComp())return false;const f=new File([stBlob
   if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]});return true}catch(e){return e.name==="AbortError"}}return false}
 function desenhaEstilos(){$("estilos").innerHTML=ESTILOS.map(([k,n])=>`<button class="${k===estilo?"on":""}" data-e="${k}">${n}</button>`).join("")}
 $("estilos").onclick=async e=>{const b=e.target.closest("[data-e]");if(!b||b.dataset.e===estilo)return;estilo=b.dataset.e;try{localStorage.setItem("plugEstilo",estilo)}catch(x){}
-  desenhaEstilos();$("prevImg").style.opacity=".4";stBlob=await stories(compIt,compFoto);mostraPrevia()};
+  desenhaEstilos();$("prevImg").style.opacity=".4";stBlob=await stories(compIt,fotosSel);mostraPrevia()};
+function desenhaFotos(){const it=compIt;if(!it||it.fs.length<2){$("selFotos").innerHTML="";return}
+  $("selFotos").innerHTML='<span>Fotos no stories:</span>'+it.fs.map((f,k)=>{const n=fotosSel.indexOf(k);return `<button class="${n>=0?"on":""}" data-f="${k}"><img src="${f}" alt="">${n>=0?`<b>${n+1}</b>`:""}</button>`}).join("")}
+$("selFotos").onclick=async e=>{const b=e.target.closest("[data-f]");if(!b)return;const k=+b.dataset.f,n=fotosSel.indexOf(k);
+  if(n>=0){if(fotosSel.length===1)return;fotosSel.splice(n,1)}else{if(fotosSel.length>=4){toast("Até 4 fotos");return}fotosSel.push(k)}
+  desenhaFotos();$("prevImg").style.opacity=".4";stBlob=await stories(compIt,fotosSel);mostraPrevia()};
 function mostraPrevia(){const u=URL.createObjectURL(stBlob);$("prevImg").src=u;$("prevImg").style.opacity="";$("stBaixa").href=u;$("stBaixa").download="plug-"+compIt.slug+".png"}
 $("mSt").onclick=async()=>{
-  $("gerando").hidden=false;$("previa").classList.remove("on");desenhaEstilos();
-  try{stBlob=await stPronto||await stories(compIt,compFoto)}catch(e){$("gerando").textContent="Não deu para montar a imagem 😕";return}
+  $("gerando").hidden=false;$("previa").classList.remove("on");desenhaEstilos();desenhaFotos();
+  try{stBlob=await stPronto||await stories(compIt,fotosSel)}catch(e){$("gerando").textContent="Não deu para montar a imagem 😕";return}
   mostraPrevia();$("gerando").hidden=true;ajustaPrevia();$("previa").classList.add("on")};
 $("stComp").onclick=async()=>{if(!await mandaInsta()){$("stBaixa").click();toast("Imagem salva — abra o Instagram e poste nos Stories")}};
 function ajustaPrevia(){const ok=podeComp();$("stComp").style.display=ok?"":"none";$("dicaLonga").hidden=ok;$("prevImg").classList.toggle("grandeImg",!ok)}
@@ -471,6 +481,16 @@ function quebra(c,txt,larg,max){const ps=txt.split(/\s+/),L=[];let l="";
   for(const p of ps){const t=l?l+" "+p:p;if(c.measureText(t).width>larg&&l){L.push(l);l=p}else l=t}if(l)L.push(l);
   if(L.length>max){L.length=max;L[max-1]=L[max-1].replace(/\s*\S*$/,"")+"…"}return L}
 function rr(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r)}
+async function fotosNoCartao(c,it,foto,x,y,w,h,m,baixo){
+  const sel=[].concat(foto).filter(k=>it.fs[k]!==undefined).slice(0,4);if(!sel.length)sel.push(0);
+  const ims=[];for(const k of sel){try{ims.push(await carrega(it.fs[k]))}catch(e){}}if(!ims.length)return;
+  const ix=x+m,iy=y+m,iw=w-2*m,ih=h-2*m-(baixo||0);
+  const cabe=(im,bx,by,bw,bh)=>{const k=Math.min(bw/im.width,bh/im.height);c.drawImage(im,bx+(bw-im.width*k)/2,by+(bh-im.height*k)/2,im.width*k,im.height*k)};
+  c.save();rr(c,x,y,w,h,48);c.clip();
+  if(ims.length===1)cabe(ims[0],ix,iy,iw,ih);
+  else{const g=18,th=Math.round(ih*0.3),mh=ih-th-g;cabe(ims[0],ix,iy,iw,mh);const n=ims.length-1,tw=(iw-g*(n-1))/n;
+    ims.slice(1).forEach((im,i)=>{const tx=ix+i*(tw+g),ty=iy+mh+g;rr(c,tx,ty,tw,th,24);c.fillStyle="#fff";c.fill();c.strokeStyle="#e7e4dc";c.lineWidth=3;c.stroke();c.save();rr(c,tx,ty,tw,th,24);c.clip();cabe(im,tx+10,ty+10,tw-20,th-20);c.restore()})}
+  c.restore()}
 async function estFicha(it,foto){await document.fonts.ready;
   try{await document.fonts.load('800 80px "Bricolage Grotesque"');await document.fonts.load('600 40px Figtree');await document.fonts.load('800 40px Figtree')}catch(e){}
   const cv=$("cv"),c=cv.getContext("2d"),W=1080,H=1920,X=72,LW=W-2*X;
@@ -481,10 +501,9 @@ async function estFicha(it,foto){await document.fonts.ready;
     c.fillStyle=CINZA;c.font='800 26px Figtree';c.fillText("ACESSÓRIOS",X+w+72,86)}catch(e){}
   // foto (a que estava aparecendo), área branca como na ficha
   const FH=740,FY=150;c.save();c.shadowColor="#00000022";c.shadowBlur=50;c.shadowOffsetY=18;rr(c,X,FY,LW,FH,48);c.fillStyle="#fff";c.fill();c.restore();
-  try{const f=await carrega(it.fs[foto]||it.f);const m=64,bw=LW-2*m,bh=FH-2*m-20,k=Math.min(bw/f.width,bh/f.height);
-    c.save();rr(c,X,FY,LW,FH,48);c.clip();c.drawImage(f,(W-f.width*k)/2,FY+m+(bh-f.height*k)/2,f.width*k,f.height*k);c.restore()}catch(e){}
-  if(it.fs.length>1){const n=it.fs.length,tw=n*14+(n-1)*10+16;let x=(W-tw)/2;
-    it.fs.forEach((_,k)=>{const w=k===foto?30:14;rr(c,x,FY+FH-40,w,14,7);c.fillStyle=k===foto?TINTA:"#d9d9d9";c.fill();x+=w+10})}
+  await fotosNoCartao(c,it,foto,X,FY,LW,FH,64,20);
+  if(it.fs.length>1&&[].concat(foto).length===1){const n=it.fs.length,tw=n*14+(n-1)*10+16;let x=(W-tw)/2;
+    it.fs.forEach((_,k)=>{const w=k===[].concat(foto)[0]?30:14;rr(c,x,FY+FH-40,w,14,7);c.fillStyle=k===[].concat(foto)[0]?TINTA:"#d9d9d9";c.fill();x+=w+10})}
   if(it.top){rr(c,X+28,FY+28,270,56,16);c.fillStyle="#ff4d2e";c.fill();c.fillStyle="#fff";c.font='800 26px Figtree';c.fillText("🔥 MAIS VENDIDO",X+48,FY+66)}
   // textos
   let y=FY+FH+76;const FIM=H-160;
@@ -524,8 +543,7 @@ async function estDestaque(it,foto,amarelo){await document.fonts.ready;
   if(it.top){c.font='800 26px Figtree';const t="🔥 MAIS VENDIDO",w=c.measureText(t).width+44;rr(c,W-X-w,182,w,56,28);c.fillStyle="#ff4d2e";c.fill();c.fillStyle="#fff";c.fillText(t,W-X-w+22,219)}
   // cartão da foto, flutuando
   const CY=290,CH=860;c.save();c.shadowColor="#0000002a";c.shadowBlur=70;c.shadowOffsetY=28;rr(c,X,CY,LW,CH,56);c.fillStyle="#fff";c.fill();c.restore();
-  try{const f=await carrega(it.fs[foto]||it.f);const m=70,bw=LW-2*m,bh=CH-2*m,k=Math.min(bw/f.width,bh/f.height);
-    c.save();rr(c,X,CY,LW,CH,56);c.clip();c.drawImage(f,X+(LW-f.width*k)/2,CY+m+(bh-f.height*k)/2,f.width*k,f.height*k);c.restore()}catch(e){}
+  await fotosNoCartao(c,it,foto,X,CY,LW,CH,70,0);
   // garantia: etiqueta sobre o canto do cartão
   {const G6=it.gar;c.font='800 28px Figtree';const t=(G6?"Garantia 6 meses":"Garantia 3 meses"),w=c.measureText(t).width+92;rr(c,X+28,CY+CH-92,w,64,32);c.fillStyle="#fff";c.fill();
     c.strokeStyle=(G6?"#cfe9d7":"#e2dfd6");c.lineWidth=3;c.stroke();c.save();c.translate(X+44,CY+CH-80);c.scale(1.65,1.65);c.fillStyle=(G6?"#16a34a":"#9a978d");
@@ -565,8 +583,7 @@ async function estEscuro(it,foto){await document.fonts.ready;
   const textoH=24+nL*78+(fil?34+56+(fil-1)*70:0)+118+40;   // categoria, nome, destaques, preço e folga
   const CH=Math.max(560,Math.min(920,1560-textoH-90-250)),CB=250+CH;
   rr(c,80,250,920,CH,48);c.fillStyle="#fff";c.fill();
-  try{const f=await carrega(it.fs[foto]||it.f);const m=60,bw=920-2*m,bh=CH-2*m,s=Math.min(bw/f.width,bh/f.height);
-    c.drawImage(f,80+m+(bw-f.width*s)/2,250+m+(bh-f.height*s)/2,f.width*s,f.height*s)}catch(e){}
+  await fotosNoCartao(c,it,foto,80,250,920,CH,60,0);
   if(it.top){rr(c,112,282,300,64,20);c.fillStyle="#ff4d2e";c.fill();c.fillStyle="#fff";c.font='800 30px Figtree';c.fillText("🔥 MAIS VENDIDO",134,326)}
   {const G6=it.gar;c.font='700 34px Figtree';const t=(G6?"Garantia 6 meses":"Garantia 3 meses"),w=c.measureText(t).width+100;rr(c,112,CB-98,w,72,36);c.fillStyle="#fff";c.fill();
     c.strokeStyle=(G6?"#cfe9d7":"#e2dfd6");c.lineWidth=3;c.stroke();c.save();c.translate(132,CB-84);c.scale(1.85,1.85);c.fillStyle=(G6?"#16a34a":"#9a978d");
