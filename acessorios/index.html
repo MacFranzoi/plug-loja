@@ -496,11 +496,14 @@ async function fotosNoCartao(c,it,foto,x,y,w,h,m,baixo){
   const cobre=(im,bx,by,bw,bh)=>{const k=Math.max(bw/im.width,bh/im.height),sw=bw/k,sh=bh/k;c.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,bx,by,bw,bh)};
   c.save();rr(c,x,y,w,h,48);c.clip();
   if(ims.length===1){if(ehFotoAmbiente(ims[0]))cobre(ims[0],x,y,w,h);else cabe(ims[0],x+m,y+m,w-2*m,h-2*m-(baixo||0))}
-  else{const ix=x+m,iy=y+m,iw=w-2*m,ih=h-2*m-(baixo||0),g=18,th=Math.round(ih*0.3),mh=ih-th-g;
-    if(ehFotoAmbiente(ims[0])){c.save();rr(c,ix,iy,iw,mh,30);c.clip();cobre(ims[0],ix,iy,iw,mh);c.restore()}else cabe(ims[0],ix,iy,iw,mh);
-    const n=ims.length-1,tw=(iw-g*(n-1))/n;
-    ims.slice(1).forEach((im,i)=>{const tx=ix+i*(tw+g),ty=iy+mh+g;rr(c,tx,ty,tw,th,24);c.fillStyle="#fff";c.fill();c.save();rr(c,tx,ty,tw,th,24);c.clip();
-      if(ehFotoAmbiente(im))cobre(im,tx,ty,tw,th);else cabe(im,tx+10,ty+10,tw-20,th-20);c.restore();rr(c,tx,ty,tw,th,24);c.strokeStyle="#e7e4dc";c.lineWidth=3;c.stroke()})}
+  else{ // grade: todas as fotos com o mesmo tratamento
+    const pad=26,g=16,ix=x+pad,iy=y+pad,iw=w-2*pad,ih=h-2*pad,n=ims.length;
+    const largas=ims.reduce((t,im)=>t+im.width/im.height,0)/n>1.15;
+    const L=n===2?(largas?[[0,0,1,.5],[0,.5,1,.5]]:[[0,0,.5,1],[.5,0,.5,1]]):n===3?[[0,0,.6,1],[.6,0,.4,.5],[.6,.5,.4,.5]]:[[0,0,.5,.5],[.5,0,.5,.5],[0,.5,.5,.5],[.5,.5,.5,.5]];
+    ims.forEach((im,k)=>{const [a,b,cw,ch]=L[k];const tx=ix+a*iw+(a?g/2:0),ty=iy+b*ih+(b?g/2:0),tw=cw*iw-(a||cw<1?g/2:0),th=ch*ih-(b||ch<1?g/2:0);
+      const amb=ehFotoAmbiente(im);c.save();rr(c,tx,ty,tw,th,30);c.fillStyle="#fff";c.fill();c.clip();
+      if(amb)cobre(im,tx,ty,tw,th);else cabe(im,tx+18,ty+18,tw-36,th-36);c.restore();
+      if(!amb){rr(c,tx,ty,tw,th,30);c.strokeStyle="#ece9e1";c.lineWidth=3;c.stroke()}})}
   c.restore()}
 async function estFicha(it,foto){await document.fonts.ready;
   try{await document.fonts.load('800 80px "Bricolage Grotesque"');await document.fonts.load('600 40px Figtree');await document.fonts.load('800 40px Figtree')}catch(e){}
