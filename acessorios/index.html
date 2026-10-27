@@ -585,8 +585,14 @@ async function estDestaque(it,foto,amarelo){await document.fonts.ready;
 async function estEscuro(it,foto){await document.fonts.ready;
   try{await document.fonts.load('800 80px "Bricolage Grotesque"');await document.fonts.load('700 40px Figtree')}catch(e){}
   const cv=$("cv"),c=cv.getContext("2d"),W=1080,H=1920;
-  c.fillStyle="#0c0c0d";c.fillRect(0,0,W,H);
-  const g=c.createRadialGradient(900,420,40,900,420,820);g.addColorStop(0,"#ffe01a40");g.addColorStop(1,"#ffe01a00");c.fillStyle=g;c.fillRect(0,0,W,H);
+  // fundo com textura: degradê + brilhos da marca + grade de pontos + granulado
+  const bg=c.createLinearGradient(0,0,W*.4,H);bg.addColorStop(0,"#121214");bg.addColorStop(.55,"#0b0b0c");bg.addColorStop(1,"#17151d");c.fillStyle=bg;c.fillRect(0,0,W,H);
+  const luz=(x,y,r,cor,a)=>{const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,cor+a);g.addColorStop(1,cor+"00");c.fillStyle=g;c.fillRect(0,0,W,H)};
+  luz(930,300,760,"#ffe01a","46");luz(120,1700,820,"#6a4bff","38");luz(980,1500,520,"#1fa7ff","22");luz(60,520,420,"#ff2d8a","18");
+  c.fillStyle="#ffffff10";for(let yy=36;yy<H;yy+=36)for(let xx=((yy/36)%2)*18+18;xx<W;xx+=36){c.beginPath();c.arc(xx,yy,1.6,0,6.3);c.fill()}
+  {const gr=document.createElement("canvas");gr.width=gr.height=256;const gx=gr.getContext("2d"),gd=gx.createImageData(256,256);
+   for(let q=0;q<gd.data.length;q+=4){const v=Math.random()*255;gd.data[q]=gd.data[q+1]=gd.data[q+2]=v;gd.data[q+3]=14}gx.putImageData(gd,0,0);
+   c.fillStyle=c.createPattern(gr,"repeat");c.fillRect(0,0,W,H)}
   const ring=c.createLinearGradient(0,0,W,0);["#ff2d2d","#ff9a1a","#ffe01a","#3ddc5a","#1fa7ff","#6a4bff","#ff2d8a"].forEach((k,i)=>ring.addColorStop(i/6,k));
   c.fillStyle=ring;c.fillRect(0,0,W,14);c.fillRect(0,H-14,W,14);
   try{const lg=await carrega("plug-marca.png");const h=86,w=lg.width*h/lg.height;c.drawImage(lg,80,92,w,h);
