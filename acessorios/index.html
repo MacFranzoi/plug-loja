@@ -489,21 +489,22 @@ function ehFotoAmbiente(im){ // borda da imagem não é branca = foto de ambient
     for(let k=0;k<40;k++)for(const [a,b] of [[k,0],[k,39],[0,k],[39,k]]){const o=(b*40+a)*4;n++;if(d[o]>232&&d[o+1]>232&&d[o+2]>232)claro++}
     r=claro/n<0.6}catch(e){}
   _ehFoto.set(im.src,r);return r}
+const RC=72,RT=46; // arredondamento: cartão das fotos e cada foto da grade
 async function fotosNoCartao(c,it,foto,x,y,w,h,m,baixo){
   const sel=[].concat(foto).filter(k=>it.fs[k]!==undefined).slice(0,4);if(!sel.length)sel.push(0);
   const ims=[];for(const k of sel){try{ims.push(await carrega(it.fs[k]))}catch(e){}}if(!ims.length)return;
   const cabe=(im,bx,by,bw,bh)=>{const k=Math.min(bw/im.width,bh/im.height);c.drawImage(im,bx+(bw-im.width*k)/2,by+(bh-im.height*k)/2,im.width*k,im.height*k)};
   const cobre=(im,bx,by,bw,bh)=>{const k=Math.max(bw/im.width,bh/im.height),sw=bw/k,sh=bh/k;c.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,bx,by,bw,bh)};
-  c.save();rr(c,x,y,w,h,48);c.clip();
+  c.save();rr(c,x,y,w,h,RC);c.clip();
   if(ims.length===1){if(ehFotoAmbiente(ims[0]))cobre(ims[0],x,y,w,h);else cabe(ims[0],x+m,y+m,w-2*m,h-2*m-(baixo||0))}
   else{ // grade: todas as fotos com o mesmo tratamento
     const pad=26,g=16,ix=x+pad,iy=y+pad,iw=w-2*pad,ih=h-2*pad,n=ims.length;
     const largas=ims.reduce((t,im)=>t+im.width/im.height,0)/n>1.15;
     const L=n===2?(largas?[[0,0,1,.5],[0,.5,1,.5]]:[[0,0,.5,1],[.5,0,.5,1]]):n===3?[[0,0,.6,1],[.6,0,.4,.5],[.6,.5,.4,.5]]:[[0,0,.5,.5],[.5,0,.5,.5],[0,.5,.5,.5],[.5,.5,.5,.5]];
     ims.forEach((im,k)=>{const [a,b,cw,ch]=L[k];const tx=ix+a*iw+(a?g/2:0),ty=iy+b*ih+(b?g/2:0),tw=cw*iw-(a||cw<1?g/2:0),th=ch*ih-(b||ch<1?g/2:0);
-      const amb=ehFotoAmbiente(im);c.save();rr(c,tx,ty,tw,th,30);c.fillStyle="#fff";c.fill();c.clip();
+      const amb=ehFotoAmbiente(im);c.save();rr(c,tx,ty,tw,th,RT);c.fillStyle="#fff";c.fill();c.clip();
       if(amb)cobre(im,tx,ty,tw,th);else cabe(im,tx+18,ty+18,tw-36,th-36);c.restore();
-      if(!amb){rr(c,tx,ty,tw,th,30);c.strokeStyle="#ece9e1";c.lineWidth=3;c.stroke()}})}
+      if(!amb){rr(c,tx,ty,tw,th,RT);c.strokeStyle="#ece9e1";c.lineWidth=3;c.stroke()}})}
   c.restore()}
 async function estFicha(it,foto){await document.fonts.ready;
   try{await document.fonts.load('800 80px "Bricolage Grotesque"');await document.fonts.load('600 40px Figtree');await document.fonts.load('800 40px Figtree')}catch(e){}
@@ -514,7 +515,7 @@ async function estFicha(it,foto){await document.fonts.ready;
   try{const lg=await carrega("plug-marca.png");const h=44,w=lg.width*h/lg.height;rr(c,X,40,w+52,72,36);c.fillStyle=TINTA;c.fill();c.drawImage(lg,X+26,54,w,h);
     c.fillStyle=CINZA;c.font='800 26px Figtree';c.fillText("ACESSÓRIOS",X+w+72,86)}catch(e){}
   // foto (a que estava aparecendo), área branca como na ficha
-  const FH=740,FY=150;c.save();c.shadowColor="#00000022";c.shadowBlur=50;c.shadowOffsetY=18;rr(c,X,FY,LW,FH,48);c.fillStyle="#fff";c.fill();c.restore();
+  const FH=740,FY=150;c.save();c.shadowColor="#00000022";c.shadowBlur=50;c.shadowOffsetY=18;rr(c,X,FY,LW,FH,RC);c.fillStyle="#fff";c.fill();c.restore();
   await fotosNoCartao(c,it,foto,X,FY,LW,FH,64,20);
   if(it.fs.length>1&&[].concat(foto).length===1){const n=it.fs.length,tw=n*14+(n-1)*10+16;let x=(W-tw)/2;
     it.fs.forEach((_,k)=>{const w=k===[].concat(foto)[0]?30:14;rr(c,x,FY+FH-40,w,14,7);c.fillStyle=k===[].concat(foto)[0]?TINTA:"#d9d9d9";c.fill();x+=w+10})}
@@ -556,7 +557,7 @@ async function estDestaque(it,foto,amarelo){await document.fonts.ready;
   try{const lg=await carrega("plug-marca.png");const h=46,w=lg.width*h/lg.height;rr(c,X,170,w+56,78,39);c.fillStyle=TINTA;c.fill();c.drawImage(lg,X+28,186,w,h)}catch(e){}
   if(it.top){c.font='800 26px Figtree';const t="🔥 MAIS VENDIDO",w=c.measureText(t).width+44;rr(c,W-X-w,182,w,56,28);c.fillStyle="#ff4d2e";c.fill();c.fillStyle="#fff";c.fillText(t,W-X-w+22,219)}
   // cartão da foto, flutuando
-  const CY=290,CH=860;c.save();c.shadowColor="#0000002a";c.shadowBlur=70;c.shadowOffsetY=28;rr(c,X,CY,LW,CH,56);c.fillStyle="#fff";c.fill();c.restore();
+  const CY=290,CH=860;c.save();c.shadowColor="#0000002a";c.shadowBlur=70;c.shadowOffsetY=28;rr(c,X,CY,LW,CH,RC);c.fillStyle="#fff";c.fill();c.restore();
   await fotosNoCartao(c,it,foto,X,CY,LW,CH,70,0);
   // garantia: etiqueta sobre o canto do cartão
   {const G6=it.gar;c.font='800 28px Figtree';const t=(G6?"Garantia 6 meses":"Garantia 3 meses"),w=c.measureText(t).width+92;rr(c,X+28,CY+CH-92,w,64,32);c.fillStyle="#fff";c.fill();
@@ -602,7 +603,7 @@ async function estEscuro(it,foto){await document.fonts.ready;
   c.font='700 32px Figtree';let fil=0,xx=80;for(const d of (it.d||[]).slice(0,2)){const t=d.length>30?d.slice(0,29)+"…":d,w=c.measureText(t).width+40;if(!fil||xx+w>1000){fil++;xx=80}xx+=w+14}
   const textoH=24+nL*78+(fil?34+56+(fil-1)*70:0)+118+40;   // categoria, nome, destaques, preço e folga
   const CH=Math.max(560,Math.min(920,1560-textoH-90-250)),CB=250+CH;
-  rr(c,80,250,920,CH,48);c.fillStyle="#fff";c.fill();
+  rr(c,80,250,920,CH,RC);c.fillStyle="#fff";c.fill();
   await fotosNoCartao(c,it,foto,80,250,920,CH,60,0);
   if(it.top){rr(c,112,282,300,64,20);c.fillStyle="#ff4d2e";c.fill();c.fillStyle="#fff";c.font='800 30px Figtree';c.fillText("🔥 MAIS VENDIDO",134,326)}
   {const G6=it.gar;c.font='700 34px Figtree';const t=(G6?"Garantia 6 meses":"Garantia 3 meses"),w=c.measureText(t).width+100;rr(c,112,CB-98,w,72,36);c.fillStyle="#fff";c.fill();
