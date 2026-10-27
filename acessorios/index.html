@@ -90,7 +90,7 @@ img{display:block}
   border:1px solid #d8eedf;color:#0b6631;font:700 11px/1 var(--body);padding:5px 8px 5px 6px;border-radius:999px;box-shadow:0 2px 8px -4px #0b663155}
 .gar svg,.garL svg{flex:none;color:#16a34a}.gar svg{width:13px;height:13px}
 .garL{display:flex;align-items:center;gap:10px;margin-top:12px;background:#fff;border:1px solid #d8eedf;border-radius:14px;padding:10px 12px}
-.garL svg{width:26px;height:26px}.garL b{display:block;font:800 14px var(--body);color:#0b6631}.garL span{font-size:12px;color:var(--muted)}
+.garL svg{width:26px;height:26px}.garL.g3{border-color:var(--line)}.garL.g3 svg{color:#9a978d}.garL.g3 b{color:var(--ink)}.garL b{display:block;font:800 14px var(--body);color:#0b6631}.garL span{font-size:12px;color:var(--muted)}
 .comp{position:absolute;top:8px;right:8px;z-index:3;width:34px;height:34px;border-radius:50%;background:#fffffff0;box-shadow:var(--sh);display:grid;place-items:center;transition:transform .15s}
 .comp:active{transform:scale(.88)}.comp svg{width:17px;height:17px}
 .prod .comp{top:12px;right:58px;width:38px;height:38px}
@@ -363,7 +363,8 @@ function abreProd(it){atual=it;qtd=1;$("pQtd").textContent=1;
   $("gal").innerHTML=it.fs.map(f=>`<img src="${f}" alt="">`).join("");$("gal").scrollLeft=0;
   $("dots").innerHTML=it.fs.length>1?it.fs.map((_,k)=>`<b class="${k?"":"on"}"></b>`).join(""):"";
   $("pCat").textContent=it.cat;$("pNome").textContent=it.n;
-  $("pDesc").innerHTML=(it.gar?`<div class="garL">${ESCUDO}<div><b>Garantia de 6 meses</b><span>Produto com garantia da loja Plug</span></div></div>`:"")+(it.r?`<p class="resumo">${it.r}</p>`:"")+((it.d||[]).length?`<ul class="dest">${it.d.map(x=>`<li>${x}</li>`).join("")}</ul>`:"")+
+  $("pDesc").innerHTML=(it.gar?`<div class="garL">${ESCUDO}<div><b>Garantia de 6 meses</b><span>Produto com garantia da loja Plug</span></div></div>`
+      :`<div class="garL g3">${ESCUDO}<div><b>Garantia de 3 meses</b><span>Garantia da loja Plug</span></div></div>`)+(it.r?`<p class="resumo">${it.r}</p>`:"")+((it.d||[]).length?`<ul class="dest">${it.d.map(x=>`<li>${x}</li>`).join("")}</ul>`:"")+
     ((it.fi||[]).length?`<div class="ficha"><h4>Ficha técnica</h4>${it.fi.map(([a,b])=>`<div><span>${a}</span><span>${b}</span></div>`).join("")}</div>`:"");
   $("prod").querySelector(".corpo").scrollTop=0;atualizaPreco();abre("prod","#p="+it.slug)}
 function atualizaPreco(){$("pPreco").textContent=brl(atual.p*qtd);$("pAddT").textContent=qtd>1?`Adicionar ${qtd}`:"Adicionar ao carrinho"}
