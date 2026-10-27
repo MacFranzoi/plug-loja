@@ -489,22 +489,40 @@ function ehFotoAmbiente(im){ // borda da imagem não é branca = foto de ambient
     for(let k=0;k<40;k++)for(const [a,b] of [[k,0],[k,39],[0,k],[39,k]]){const o=(b*40+a)*4;n++;if(d[o]>232&&d[o+1]>232&&d[o+2]>232)claro++}
     r=claro/n<0.6}catch(e){}
   _ehFoto.set(im.src,r);return r}
+// ficha técnica resumida para os stories: mais importantes primeiro
+const PRIORI=[/compat/i,/pot[eê]ncia/i,/bateria|mah/i,/autonomia|dura/i,/comprimento/i,/corrente|amper/i,/sa[ií]da|conector/i,/bluetooth/i,/alcance/i,/tempo de recarga/i,/resist/i];
+function infosTop(it,n){const fi=(it.fi||[]).filter(([a,b])=>a&&b&&!/^(cores?|modelo|tipo)$/i.test(a.trim()));
+  const pos=x=>{const k=PRIORI.findIndex(r=>r.test(x[0]));return k<0?99:k};return [...fi].sort((a,b)=>pos(a)-pos(b)).slice(0,n)}
+function desenhaInfos(c,it,x,y,w,maxLin,escuro){const L=infosTop(it,maxLin*2);if(!L.length)return y;
+  const g=14,cw=(w-g)/2,ch=96;
+  L.forEach(([a,b],k)=>{const cx=x+(k%2)*(cw+g),cy=y+Math.floor(k/2)*(ch+g);
+    rr(c,cx,cy,cw,ch,24);c.fillStyle=escuro?"#ffffff10":"#ffffffcc";c.fill();c.strokeStyle=escuro?"#ffffff22":"#00000014";c.lineWidth=2;c.stroke();
+    c.fillStyle=escuro?"#ffffff88":"#6f6c63";c.font='700 22px Figtree';c.fillText(quebra(c,a.toUpperCase(),cw-40,1)[0],cx+22,cy+36);
+    c.fillStyle=escuro?"#fff":"#0c0c0d";c.font='800 30px Figtree';c.fillText(quebra(c,b,cw-40,1)[0],cx+22,cy+74)});
+  return y+Math.ceil(L.length/2)*(ch+g)-g}
 const RC=72,RT=46; // arredondamento: cartão das fotos e cada foto da grade
 async function fotosNoCartao(c,it,foto,x,y,w,h,m,baixo){
   const sel=[].concat(foto).filter(k=>it.fs[k]!==undefined).slice(0,4);if(!sel.length)sel.push(0);
   const ims=[];for(const k of sel){try{ims.push(await carrega(it.fs[k]))}catch(e){}}if(!ims.length)return;
   const cabe=(im,bx,by,bw,bh)=>{const k=Math.min(bw/im.width,bh/im.height);c.drawImage(im,bx+(bw-im.width*k)/2,by+(bh-im.height*k)/2,im.width*k,im.height*k)};
-  const cobre=(im,bx,by,bw,bh)=>{const k=Math.max(bw/im.width,bh/im.height),sw=bw/k,sh=bh/k;c.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,bx,by,bw,bh)};
+  const cobre=(im,bx,by,bw,bh)=>{const k=Math.max(bw/im.width,bh/im.height)*1.07,sw=bw/k,sh=bh/k;c.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,bx,by,bw,bh)};
+  // foto de ambiente: preenche; se o corte for grande demais, mostra inteira sobre ela mesma desfocada
+  const enche=(im,bx,by,bw,bh)=>{const r=(bw/bh)/(im.width/im.height);if(r>0.74&&r<1.36){cobre(im,bx,by,bw,bh);return}
+    // inteira, com cantos próprios, centralizada (sem depender de desfoque, que o Safari não faz em canvas)
+    const p=14,k=Math.min((bw-2*p)/im.width,(bh-2*p)/im.height)*1.07,dw=im.width*k/1.07,dh=im.height*k/1.07,dx=bx+(bw-dw)/2,dy=by+(bh-dh)/2;
+    c.save();rr(c,dx,dy,dw,dh,26);c.clip();const sw=im.width/1.07,sh=im.height/1.07;c.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,dx,dy,dw,dh);c.restore()};
   c.save();rr(c,x,y,w,h,RC);c.clip();
-  if(ims.length===1){if(ehFotoAmbiente(ims[0]))cobre(ims[0],x,y,w,h);else cabe(ims[0],x+m,y+m,w-2*m,h-2*m-(baixo||0))}
-  else{ // grade: todas as fotos com o mesmo tratamento
-    const pad=26,g=16,ix=x+pad,iy=y+pad,iw=w-2*pad,ih=h-2*pad,n=ims.length;
+  if(ims.length===1){if(ehFotoAmbiente(ims[0]))enche(ims[0],x,y,w,h);else cabe(ims[0],x+m,y+m,w-2*m,h-2*m-(baixo||0))}
+  else{ // mosaico: fotos encostadas no cartão, separadas por um fio; cantos de fora acompanham o cartão
+    const g=12,n=ims.length;
     const largas=ims.reduce((t,im)=>t+im.width/im.height,0)/n>1.15;
     const L=n===2?(largas?[[0,0,1,.5],[0,.5,1,.5]]:[[0,0,.5,1],[.5,0,.5,1]]):n===3?[[0,0,.6,1],[.6,0,.4,.5],[.6,.5,.4,.5]]:[[0,0,.5,.5],[.5,0,.5,.5],[0,.5,.5,.5],[.5,.5,.5,.5]];
-    ims.forEach((im,k)=>{const [a,b,cw,ch]=L[k];const tx=ix+a*iw+(a?g/2:0),ty=iy+b*ih+(b?g/2:0),tw=cw*iw-(a||cw<1?g/2:0),th=ch*ih-(b||ch<1?g/2:0);
-      const amb=ehFotoAmbiente(im);c.save();rr(c,tx,ty,tw,th,RT);c.fillStyle="#fff";c.fill();c.clip();
-      if(amb)cobre(im,tx,ty,tw,th);else cabe(im,tx+18,ty+18,tw-36,th-36);c.restore();
-      if(!amb){rr(c,tx,ty,tw,th,RT);c.strokeStyle="#ece9e1";c.lineWidth=3;c.stroke()}})}
+    c.fillStyle="#fff";c.fillRect(x,y,w,h);
+    ims.forEach((im,k)=>{const [a,b,cw,ch]=L[k],E=a===0,D=a+cw>.999,T=b===0,B=b+ch>.999;
+      const tx=x+a*w+(E?0:g/2),ty=y+b*h+(T?0:g/2),tw=cw*w-(E?0:g/2)-(D?0:g/2),th=ch*h-(T?0:g/2)-(B?0:g/2);
+      const ri=18,rad=[T&&E?RC:ri,T&&D?RC:ri,B&&D?RC:ri,B&&E?RC:ri];
+      const amb=ehFotoAmbiente(im);c.save();c.beginPath();c.roundRect(tx,ty,tw,th,rad);c.fillStyle="#fff";c.fill();c.clip();
+      if(amb)enche(im,tx,ty,tw,th);else cabe(im,tx+30,ty+30,tw-60,th-60);c.restore()})}
   c.restore()}
 async function estFicha(it,foto){await document.fonts.ready;
   try{await document.fonts.load('800 80px "Bricolage Grotesque"');await document.fonts.load('600 40px Figtree');await document.fonts.load('800 40px Figtree')}catch(e){}
@@ -572,12 +590,10 @@ async function estDestaque(it,foto,amarelo){await document.fonts.ready;
   let y=CY+CH+120;c.fillStyle=CINZA;c.font='800 26px Figtree';c.fillText(it.cat.toUpperCase(),X,y);
   c.fillStyle=TINTA;c.font='800 64px "Bricolage Grotesque"';for(const l of quebra(c,it.n,LW,2)){y+=72;c.fillText(l,X,y)}
   y+=26;
-  const comp=(it.fi||[]).find(([a])=>/compat/i.test(a));
-  const ds=(it.d||[]).filter(d=>!comp||!sa(d).includes(sa(comp[1]).slice(0,12))).slice(0,comp?2:3);
+  const ds=(it.d||[]).slice(0,2);
   for(const d of ds){y+=58;rr(c,X,y-36,40,40,12);c.fillStyle=amarelo?"#0c0c0d":"#ffe01a";c.fill();c.fillStyle=amarelo?"#ffe01a":"#141200";c.font='800 26px Figtree';c.fillText("✓",X+10,y-7);
     c.fillStyle=TINTA;c.font='700 34px Figtree';c.fillText(quebra(c,d,LW-60,1)[0],X+58,y-4)}
-  if(comp&&y<1600){y+=40;c.font='700 29px Figtree';const t="📱 "+quebra(c,"Compatível: "+comp[1],LW-60,1)[0],w=c.measureText(t).width+48;
-    rr(c,X,y,w,62,31);c.fillStyle="#fff";c.fill();c.strokeStyle="#e2dfd6";c.lineWidth=2;c.stroke();c.fillStyle=TINTA;c.fillText(t,X+24,y+42)}
+  {const lin=Math.max(0,Math.min(2,Math.floor((1640-(y+34))/110)));if(lin)desenhaInfos(c,it,X,y+34,LW,lin,false)}
   // rodapé leve, acima do campo de resposta do Instagram
   c.fillStyle=CINZA;c.font='700 28px Figtree';c.textAlign="center";
   c.fillText("Peça pelo WhatsApp 💬",W/2,1700);c.font='600 25px Figtree';
@@ -594,7 +610,7 @@ async function estEscuro(it,foto){await document.fonts.ready;
   {const gr=document.createElement("canvas");gr.width=gr.height=256;const gx=gr.getContext("2d"),gd=gx.createImageData(256,256);
    for(let q=0;q<gd.data.length;q+=4){const v=Math.random()*255;gd.data[q]=gd.data[q+1]=gd.data[q+2]=v;gd.data[q+3]=12}gx.putImageData(gd,0,0);c.fillStyle=c.createPattern(gr,"repeat");c.fillRect(0,0,W,H)}
   // grade de posições fixas (px no stories 1080x1920)
-  const LOGO=172,CY=262,CH=820,RODA=1650,PRECO=RODA-58;
+  const LOGO=172,CY=262,CH=760,RODA=1650,PRECO=RODA-58;
   try{const lg=await carrega("plug-marca.png");const h=56,w=lg.width*h/lg.height;c.drawImage(lg,X,LOGO,w,h);
     c.fillStyle="#ffffff99";c.font='700 23px Figtree';c.fillText("ACESSÓRIOS",X+w+18,LOGO+42)}catch(e){}
   if(it.top){c.font='800 23px Figtree';const t="🔥 MAIS VENDIDO",w=c.measureText(t).width+40;rr(c,W-X-w,LOGO+3,w,50,25);c.fillStyle="#ff4d2e";c.fill();c.fillStyle="#fff";c.fillText(t,W-X-w+20,LOGO+36)}
@@ -606,9 +622,10 @@ async function estEscuro(it,foto){await document.fonts.ready;
     c.fillStyle=G6?"#0b6631":"#0c0c0d";c.fillText(t,X+92,CY+CH-47)}
   let y=CY+CH+82;c.fillStyle=VOLT;c.font='800 24px Figtree';c.letterSpacing="4px";c.fillText(it.cat.toUpperCase(),X,y);c.letterSpacing="0px";
   c.fillStyle="#fff";c.font='800 66px "Bricolage Grotesque"';const nomeL=quebra(c,it.n,LW,2);y+=8;for(const l of nomeL){y+=74;c.fillText(l,X,y)}
-  c.font='700 27px Figtree';let x=X;const lim=PRECO-150;
-  if(y+36+50<lim){y+=34;for(const d of (it.d||[]).slice(0,3)){const t=quebra(c,d,LW*.62,1)[0],w=c.measureText(t).width+44;if(x+w>X+LW)break;
-    rr(c,x,y,w,50,25);c.strokeStyle="#ffffff40";c.lineWidth=2;c.stroke();c.fillStyle="#ffffffdd";c.fillText(t,x+22,y+34);x+=w+12}}
+  {const lim=PRECO-118,lin=Math.max(0,Math.min(2,Math.floor((lim-(y+34))/110)));
+   if(lin&&infosTop(it,1).length)desenhaInfos(c,it,X,y+34,LW,lin,true);
+   else if(y+34+50<lim){y+=34;let x=X;c.font='700 27px Figtree';for(const d of (it.d||[]).slice(0,3)){const t=quebra(c,d,LW*.62,1)[0],w=c.measureText(t).width+44;if(x+w>X+LW)break;
+     rr(c,x,y,w,50,25);c.strokeStyle="#ffffff40";c.lineWidth=2;c.stroke();c.fillStyle="#ffffffdd";c.fillText(t,x+22,y+34);x+=w+12}}}
   c.fillStyle=VOLT;c.font='800 116px "Bricolage Grotesque"';const pt=brl(it.p);c.fillText(pt,X-4,PRECO);
   const pw=c.measureText(pt).width;c.fillStyle="#ffffff80";c.font='700 28px Figtree';c.fillText("à vista",X+pw+18,PRECO-10);
   // rodapé: pílula de vidro com WhatsApp
