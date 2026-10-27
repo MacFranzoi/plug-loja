@@ -491,10 +491,10 @@ async function estFicha(it,foto){await document.fonts.ready;
   c.fillStyle=CINZA;c.font='800 26px Figtree';c.fillText(it.cat.toUpperCase(),X,y);
   c.fillStyle=TINTA;c.font='800 62px "Bricolage Grotesque"';for(const l of quebra(c,it.n,LW,2)){y+=70;c.fillText(l,X,y)}
   y+=92;c.font='800 86px "Bricolage Grotesque"';c.fillText(brl(it.p),X-2,y);
-  if(it.gar){y+=34;rr(c,X,y,LW,96,24);c.fillStyle="#fff";c.fill();c.strokeStyle="#d8eedf";c.lineWidth=2;c.stroke();
-    c.save();c.translate(X+24,y+22);c.scale(2.2,2.2);c.fillStyle="#16a34a";c.fill(new Path2D("M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"));
+  {const G6=it.gar;y+=34;rr(c,X,y,LW,96,24);c.fillStyle="#fff";c.fill();c.strokeStyle=(G6?"#d8eedf":"#e2dfd6");c.lineWidth=2;c.stroke();
+    c.save();c.translate(X+24,y+22);c.scale(2.2,2.2);c.fillStyle=(G6?"#16a34a":"#9a978d");c.fill(new Path2D("M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"));
     c.strokeStyle="#fff";c.lineWidth=2.2;c.lineCap="round";c.lineJoin="round";c.stroke(new Path2D("m8.5 12 2.4 2.4 4.6-4.8"));c.restore();
-    c.fillStyle="#0b6631";c.font='800 32px Figtree';c.fillText("Garantia de 6 meses",X+96,y+44);c.fillStyle=CINZA;c.font='600 25px Figtree';c.fillText("Produto com garantia da loja Plug",X+96,y+78);y+=96}
+    c.fillStyle=(G6?"#0b6631":"#0c0c0d");c.font='800 32px Figtree';c.fillText((G6?"Garantia de 6 meses":"Garantia de 3 meses"),X+96,y+44);c.fillStyle=CINZA;c.font='600 25px Figtree';c.fillText((G6?"Produto com garantia da loja Plug":"Garantia da loja Plug"),X+96,y+78);y+=96}
   if(it.r){y+=24;c.fillStyle="#26251f";c.font='500 31px Figtree';for(const l of quebra(c,it.r,LW,3)){if(y+44>FIM)break;y+=44;c.fillText(l,X,y)}}
   const ds=(it.d||[]).slice(0,3);if(ds.length)y+=14;
   for(const d of ds){if(y+52>FIM)break;y+=52;rr(c,X,y-30,34,34,9);c.fillStyle="#ffe01a";c.fill();c.fillStyle="#141200";c.font='800 22px Figtree';c.fillText("✓",X+8,y-6);
@@ -527,10 +527,10 @@ async function estDestaque(it,foto,amarelo){await document.fonts.ready;
   try{const f=await carrega(it.fs[foto]||it.f);const m=70,bw=LW-2*m,bh=CH-2*m,k=Math.min(bw/f.width,bh/f.height);
     c.save();rr(c,X,CY,LW,CH,56);c.clip();c.drawImage(f,X+(LW-f.width*k)/2,CY+m+(bh-f.height*k)/2,f.width*k,f.height*k);c.restore()}catch(e){}
   // garantia: etiqueta sobre o canto do cartão
-  if(it.gar){c.font='800 28px Figtree';const t="Garantia 6 meses",w=c.measureText(t).width+92;rr(c,X+28,CY+CH-92,w,64,32);c.fillStyle="#fff";c.fill();
-    c.strokeStyle="#cfe9d7";c.lineWidth=3;c.stroke();c.save();c.translate(X+44,CY+CH-80);c.scale(1.65,1.65);c.fillStyle="#16a34a";
+  {const G6=it.gar;c.font='800 28px Figtree';const t=(G6?"Garantia 6 meses":"Garantia 3 meses"),w=c.measureText(t).width+92;rr(c,X+28,CY+CH-92,w,64,32);c.fillStyle="#fff";c.fill();
+    c.strokeStyle=(G6?"#cfe9d7":"#e2dfd6");c.lineWidth=3;c.stroke();c.save();c.translate(X+44,CY+CH-80);c.scale(1.65,1.65);c.fillStyle=(G6?"#16a34a":"#9a978d");
     c.fill(new Path2D("M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"));c.strokeStyle="#fff";c.lineWidth=2.2;c.lineCap="round";c.lineJoin="round";
-    c.stroke(new Path2D("m8.5 12 2.4 2.4 4.6-4.8"));c.restore();c.fillStyle="#0b6631";c.fillText(t,X+100,CY+CH-49)}
+    c.stroke(new Path2D("m8.5 12 2.4 2.4 4.6-4.8"));c.restore();c.fillStyle=(G6?"#0b6631":"#0c0c0d");c.fillText(t,X+100,CY+CH-49)}
   // preço como adesivo inclinado
   c.font='800 84px "Bricolage Grotesque"';const pt=brl(it.p),pw=c.measureText(pt).width+70;
   c.save();c.translate(W-X-pw/2+18,CY+CH-6);c.rotate(-0.06);c.shadowColor="#0000003a";c.shadowBlur=30;c.shadowOffsetY=12;
@@ -568,10 +568,10 @@ async function estEscuro(it,foto){await document.fonts.ready;
   try{const f=await carrega(it.fs[foto]||it.f);const m=60,bw=920-2*m,bh=CH-2*m,s=Math.min(bw/f.width,bh/f.height);
     c.drawImage(f,80+m+(bw-f.width*s)/2,250+m+(bh-f.height*s)/2,f.width*s,f.height*s)}catch(e){}
   if(it.top){rr(c,112,282,300,64,20);c.fillStyle="#ff4d2e";c.fill();c.fillStyle="#fff";c.font='800 30px Figtree';c.fillText("🔥 MAIS VENDIDO",134,326)}
-  if(it.gar){c.font='700 34px Figtree';const t="Garantia 6 meses",w=c.measureText(t).width+100;rr(c,112,CB-98,w,72,36);c.fillStyle="#fff";c.fill();
-    c.strokeStyle="#cfe9d7";c.lineWidth=3;c.stroke();c.save();c.translate(132,CB-84);c.scale(1.85,1.85);c.fillStyle="#16a34a";
+  {const G6=it.gar;c.font='700 34px Figtree';const t=(G6?"Garantia 6 meses":"Garantia 3 meses"),w=c.measureText(t).width+100;rr(c,112,CB-98,w,72,36);c.fillStyle="#fff";c.fill();
+    c.strokeStyle=(G6?"#cfe9d7":"#e2dfd6");c.lineWidth=3;c.stroke();c.save();c.translate(132,CB-84);c.scale(1.85,1.85);c.fillStyle=(G6?"#16a34a":"#9a978d");
     c.fill(new Path2D("M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"));c.strokeStyle="#fff";c.lineWidth=2.2;c.lineCap="round";c.lineJoin="round";
-    c.stroke(new Path2D("m8.5 12 2.4 2.4 4.6-4.8"));c.restore();c.fillStyle="#0b6631";c.fillText(t,190,CB-50)}
+    c.stroke(new Path2D("m8.5 12 2.4 2.4 4.6-4.8"));c.restore();c.fillStyle=(G6?"#0b6631":"#0c0c0d");c.fillText(t,190,CB-50)}
   // textos
   let y=CB+90;c.fillStyle="#a9a69c";c.font='800 30px Figtree';c.fillText(it.cat.toUpperCase(),84,y);y+=24;
   c.fillStyle="#fff";c.font='800 72px "Bricolage Grotesque"';for(const l of quebra(c,it.n,912,2)){y+=78;c.fillText(l,80,y)}
