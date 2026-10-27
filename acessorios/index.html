@@ -96,7 +96,7 @@ img{display:block}
 .prod .comp{top:12px;right:58px;width:38px;height:38px}
 .menu{left:50%;bottom:0;width:min(480px,100%);border-radius:24px 24px 0 0;transform:translate(-50%,105%);padding:18px 16px calc(18px + env(safe-area-inset-bottom));z-index:55}
 .menu.on{transform:translate(-50%,0)}
-.folha.menu{z-index:56}.menu{max-height:94vh;overflow-y:auto}
+.folha.menu{z-index:56}.menu{max-height:94vh;max-height:92dvh;overflow-y:auto}
 .menu h3{font:800 20px var(--display);margin:4px 4px 14px}
 .opcoes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .opcoes button{background:#fff;border-radius:16px;box-shadow:var(--sh);padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;font:700 13px var(--body)}
@@ -129,7 +129,7 @@ img{display:block}
 .fundo{position:fixed;inset:0;background:#0c0c0d8c;backdrop-filter:blur(3px);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
 .fundo.on{opacity:1;pointer-events:auto}
 .folha{position:fixed;z-index:50;background:var(--paper);transition:transform .35s cubic-bezier(.2,.9,.25,1);display:flex;flex-direction:column}
-.prod{left:50%;bottom:0;width:min(560px,100%);max-height:94vh;border-radius:26px 26px 0 0;transform:translate(-50%,105%)}
+.prod{left:50%;bottom:0;width:min(560px,100%);max-height:94vh;max-height:92dvh;border-radius:26px 26px 0 0;transform:translate(-50%,105%)}
 .prod.on{transform:translate(-50%,0)}
 @media(min-width:760px){.prod{bottom:auto;top:50%;border-radius:26px;transform:translate(-50%,-40%) scale(.96);opacity:0;pointer-events:none;transition:transform .3s,opacity .25s}.prod.on{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}}
 .alca{position:absolute;top:8px;left:50%;margin-left:-22px;width:44px;height:5px;border-radius:3px;background:#0003;z-index:4;pointer-events:none}
@@ -139,7 +139,7 @@ img{display:block}
 .fechar{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:var(--sh);font-size:22px;line-height:1;z-index:3}
 .galeria{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;background:#fff;border-radius:26px 26px 0 0;flex:none}
 .galeria::-webkit-scrollbar{display:none}
-.galeria img{flex:none;width:100%;aspect-ratio:1/0.85;object-fit:contain;scroll-snap-align:center;padding:22px}
+.galeria img{flex:none;width:100%;aspect-ratio:1/0.85;max-height:42dvh;object-fit:contain;scroll-snap-align:center;padding:22px}
 .dots{display:flex;gap:6px;justify-content:center;padding:10px 0 0;background:#fff}
 .dots b{width:7px;height:7px;border-radius:4px;background:#ddd;transition:width .2s,background .2s}
 .dots b.on{width:20px;background:var(--ink)}
@@ -156,7 +156,8 @@ img{display:block}
 .ficha h4{margin:0;padding:12px 14px 6px;font:800 12px var(--body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .ficha div{display:flex;justify-content:space-between;gap:12px;padding:9px 14px;border-top:1px solid var(--line);font-size:14px}
 .ficha div span:first-child{color:var(--muted)}.ficha div span:last-child{font-weight:700;text-align:right}
-.prod .compra{position:sticky;bottom:0;background:var(--paper);padding:12px 0 calc(4px + env(safe-area-inset-bottom));margin-top:8px}
+.prod .compra{flex:none;margin:0;background:var(--paper);border-top:1px solid var(--line);padding:12px 20px calc(12px + env(safe-area-inset-bottom))}
+.prod .corpo{flex:1;min-height:0}
 .linha{display:flex;align-items:center;gap:12px;margin-top:16px}
 .qtd{display:flex;align-items:center;background:#fff;border-radius:14px;box-shadow:var(--sh);height:52px}
 .qtd button{width:46px;height:52px;font:800 22px var(--body)}
@@ -265,10 +266,10 @@ footer .lj a{color:#fff;border:1px solid #ffffff2a;border-radius:12px;padding:9p
     <div class="preco" id="pPreco"></div>
     <div id="pDesc"></div>
     <p class="nota">Cor e modelo a combinar com a loja. Disponibilidade confirmada no WhatsApp.</p>
-    <div class="linha compra">
-      <div class="qtd"><button id="menos" aria-label="Menos">−</button><span id="pQtd">1</span><button id="mais" aria-label="Mais">+</button></div>
-      <button class="grande" id="pAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span id="pAddT">Adicionar</span></button>
-    </div>
+  </div>
+  <div class="linha compra">
+    <div class="qtd"><button id="menos" aria-label="Menos">−</button><span id="pQtd">1</span><button id="mais" aria-label="Mais">+</button></div>
+    <button class="grande" id="pAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span id="pAddT">Adicionar</span></button>
   </div>
 </section>
 
