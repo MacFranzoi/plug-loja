@@ -584,42 +584,39 @@ async function estDestaque(it,foto,amarelo){await document.fonts.ready;
   c.fillText(D.lojas.slice(0,2).map(l=>`${l.nome} ${fone(l.whatsapp)}`).join("   ·   "),W/2,1742);c.textAlign="left";
   return await new Promise(ok=>cv.toBlob(ok,"image/png"))}
 async function estEscuro(it,foto){await document.fonts.ready;
-  try{await document.fonts.load('800 80px "Bricolage Grotesque"');await document.fonts.load('700 40px Figtree')}catch(e){}
-  const cv=$("cv"),c=cv.getContext("2d"),W=1080,H=1920;
-  // fundo com textura: degradê + brilhos da marca + grade de pontos + granulado
-  const bg=c.createLinearGradient(0,0,W*.4,H);bg.addColorStop(0,"#121214");bg.addColorStop(.55,"#0b0b0c");bg.addColorStop(1,"#17151d");c.fillStyle=bg;c.fillRect(0,0,W,H);
+  try{await document.fonts.load('800 80px "Bricolage Grotesque"');await document.fonts.load('600 40px Figtree');await document.fonts.load('800 40px Figtree')}catch(e){}
+  const cv=$("cv"),c=cv.getContext("2d"),W=1080,H=1920,X=84,LW=W-2*X,VOLT="#ffe01a";
+  // palco: grafite com foco de luz atrás do produto
+  c.fillStyle="#0d0d10";c.fillRect(0,0,W,H);
   const luz=(x,y,r,cor,a)=>{const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,cor+a);g.addColorStop(1,cor+"00");c.fillStyle=g;c.fillRect(0,0,W,H)};
-  luz(930,300,760,"#ffe01a","46");luz(120,1700,820,"#6a4bff","38");luz(980,1500,520,"#1fa7ff","22");luz(60,520,420,"#ff2d8a","18");
-  c.fillStyle="#ffffff10";for(let yy=36;yy<H;yy+=36)for(let xx=((yy/36)%2)*18+18;xx<W;xx+=36){c.beginPath();c.arc(xx,yy,1.6,0,6.3);c.fill()}
+  luz(W/2,620,900,"#3a3a46","ff");luz(W/2,640,620,"#ffe01a","26");luz(W,0,700,"#ffe01a","22");luz(0,H,900,"#6a4bff","2a");
+  const vin=c.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.75);vin.addColorStop(0,"#00000000");vin.addColorStop(1,"#000000aa");c.fillStyle=vin;c.fillRect(0,0,W,H);
   {const gr=document.createElement("canvas");gr.width=gr.height=256;const gx=gr.getContext("2d"),gd=gx.createImageData(256,256);
-   for(let q=0;q<gd.data.length;q+=4){const v=Math.random()*255;gd.data[q]=gd.data[q+1]=gd.data[q+2]=v;gd.data[q+3]=14}gx.putImageData(gd,0,0);
-   c.fillStyle=c.createPattern(gr,"repeat");c.fillRect(0,0,W,H)}
-  const ring=c.createLinearGradient(0,0,W,0);["#ff2d2d","#ff9a1a","#ffe01a","#3ddc5a","#1fa7ff","#6a4bff","#ff2d8a"].forEach((k,i)=>ring.addColorStop(i/6,k));
-  c.fillStyle=ring;c.fillRect(0,0,W,14);c.fillRect(0,H-14,W,14);
-  try{const lg=await carrega("plug-marca.png");const h=86,w=lg.width*h/lg.height;c.drawImage(lg,80,92,w,h);
-    c.fillStyle="#ffe01a";c.font='800 40px "Bricolage Grotesque"';c.fillText("ACESSÓRIOS",80+w+22,158)}catch(e){}
-  // cartão branco com a foto
-  c.font='800 72px "Bricolage Grotesque"';const nL=quebra(c,it.n,912,2).length;
-  c.font='700 32px Figtree';let fil=0,xx=80;for(const d of (it.d||[]).slice(0,2)){const t=d.length>30?d.slice(0,29)+"…":d,w=c.measureText(t).width+40;if(!fil||xx+w>1000){fil++;xx=80}xx+=w+14}
-  const textoH=24+nL*78+(fil?34+56+(fil-1)*70:0)+118+40;   // categoria, nome, destaques, preço e folga
-  const CH=Math.max(560,Math.min(920,1560-textoH-90-250)),CB=250+CH;
-  rr(c,80,250,920,CH,RC);c.fillStyle="#fff";c.fill();
-  await fotosNoCartao(c,it,foto,80,250,920,CH,60,0);
-  if(it.top){rr(c,112,282,300,64,20);c.fillStyle="#ff4d2e";c.fill();c.fillStyle="#fff";c.font='800 30px Figtree';c.fillText("🔥 MAIS VENDIDO",134,326)}
-  {const G6=it.gar;c.font='700 34px Figtree';const t=(G6?"Garantia 6 meses":"Garantia 3 meses"),w=c.measureText(t).width+100;rr(c,112,CB-98,w,72,36);c.fillStyle="#fff";c.fill();
-    c.strokeStyle=(G6?"#cfe9d7":"#e2dfd6");c.lineWidth=3;c.stroke();c.save();c.translate(132,CB-84);c.scale(1.85,1.85);c.fillStyle=(G6?"#16a34a":"#9a978d");
-    c.fill(new Path2D("M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"));c.strokeStyle="#fff";c.lineWidth=2.2;c.lineCap="round";c.lineJoin="round";
-    c.stroke(new Path2D("m8.5 12 2.4 2.4 4.6-4.8"));c.restore();c.fillStyle=(G6?"#0b6631":"#0c0c0d");c.fillText(t,190,CB-50)}
-  // textos
-  let y=CB+90;c.fillStyle="#a9a69c";c.font='800 30px Figtree';c.fillText(it.cat.toUpperCase(),84,y);y+=24;
-  c.fillStyle="#fff";c.font='800 72px "Bricolage Grotesque"';for(const l of quebra(c,it.n,912,2)){y+=78;c.fillText(l,80,y)}
-  y+=34;const ds=(it.d||[]).slice(0,2);c.font='700 32px Figtree';let x=80;
-  for(const d of ds){const t=d.length>30?d.slice(0,29)+"…":d,w=c.measureText(t).width+40;if(x+w>1000){x=80;y+=70}rr(c,x,y,w,56,16);c.fillStyle="#ffffff1c";c.fill();c.fillStyle="#f4f2ec";c.fillText(t,x+20,y+39);x+=w+14}
-  if(ds.length)y+=56;
-  y+=118;c.fillStyle="#ffe01a";c.font='800 132px "Bricolage Grotesque"';c.fillText(brl(it.p),76,y);
-  // rodapé
-  rr(c,80,1610,920,200,40);c.fillStyle="#ffe01a";c.fill();c.fillStyle="#141200";c.font='800 50px "Bricolage Grotesque"';c.fillText("Peça pelo WhatsApp 💬",124,1690);
-  c.font='700 34px Figtree';D.lojas.slice(0,2).forEach((l,i)=>c.fillText(`${l.nome}: ${fone(l.whatsapp)}`,124,1748+i*44));
+   for(let q=0;q<gd.data.length;q+=4){const v=Math.random()*255;gd.data[q]=gd.data[q+1]=gd.data[q+2]=v;gd.data[q+3]=12}gx.putImageData(gd,0,0);c.fillStyle=c.createPattern(gr,"repeat");c.fillRect(0,0,W,H)}
+  // grade de posições fixas (px no stories 1080x1920)
+  const LOGO=172,CY=262,CH=820,RODA=1650,PRECO=RODA-58;
+  try{const lg=await carrega("plug-marca.png");const h=56,w=lg.width*h/lg.height;c.drawImage(lg,X,LOGO,w,h);
+    c.fillStyle="#ffffff99";c.font='700 23px Figtree';c.fillText("ACESSÓRIOS",X+w+18,LOGO+42)}catch(e){}
+  if(it.top){c.font='800 23px Figtree';const t="🔥 MAIS VENDIDO",w=c.measureText(t).width+40;rr(c,W-X-w,LOGO+3,w,50,25);c.fillStyle="#ff4d2e";c.fill();c.fillStyle="#fff";c.fillText(t,W-X-w+20,LOGO+36)}
+  c.save();c.shadowColor="#ffe01a50";c.shadowBlur=90;rr(c,X,CY,LW,CH,RC);c.fillStyle="#fff";c.fill();c.restore();
+  await fotosNoCartao(c,it,foto,X,CY,LW,CH,60,0);
+  {const G6=it.gar;c.font='800 26px Figtree';const t=G6?"Garantia 6 meses":"Garantia 3 meses",w=c.measureText(t).width+86;rr(c,X+28,CY+CH-86,w,58,29);c.fillStyle="#fff";c.fill();
+    c.strokeStyle=G6?"#cfe9d7":"#e2dfd6";c.lineWidth=2;c.stroke();c.save();c.translate(X+42,CY+CH-76);c.scale(1.55,1.55);c.fillStyle=G6?"#16a34a":"#9a978d";
+    c.fill(new Path2D("M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"));c.strokeStyle="#fff";c.lineWidth=2.2;c.lineCap="round";c.lineJoin="round";c.stroke(new Path2D("m8.5 12 2.4 2.4 4.6-4.8"));c.restore();
+    c.fillStyle=G6?"#0b6631":"#0c0c0d";c.fillText(t,X+92,CY+CH-47)}
+  let y=CY+CH+82;c.fillStyle=VOLT;c.font='800 24px Figtree';c.letterSpacing="4px";c.fillText(it.cat.toUpperCase(),X,y);c.letterSpacing="0px";
+  c.fillStyle="#fff";c.font='800 66px "Bricolage Grotesque"';const nomeL=quebra(c,it.n,LW,2);y+=8;for(const l of nomeL){y+=74;c.fillText(l,X,y)}
+  c.font='700 27px Figtree';let x=X;const lim=PRECO-150;
+  if(y+36+50<lim){y+=34;for(const d of (it.d||[]).slice(0,3)){const t=quebra(c,d,LW*.62,1)[0],w=c.measureText(t).width+44;if(x+w>X+LW)break;
+    rr(c,x,y,w,50,25);c.strokeStyle="#ffffff40";c.lineWidth=2;c.stroke();c.fillStyle="#ffffffdd";c.fillText(t,x+22,y+34);x+=w+12}}
+  c.fillStyle=VOLT;c.font='800 116px "Bricolage Grotesque"';const pt=brl(it.p);c.fillText(pt,X-4,PRECO);
+  const pw=c.measureText(pt).width;c.fillStyle="#ffffff80";c.font='700 28px Figtree';c.fillText("à vista",X+pw+18,PRECO-10);
+  // rodapé: pílula de vidro com WhatsApp
+  rr(c,X,RODA,LW,150,40);c.fillStyle="#ffffff12";c.fill();c.strokeStyle="#ffffff26";c.lineWidth=2;c.stroke();
+  c.beginPath();c.arc(X+75,RODA+75,40,0,6.3);c.fillStyle="#25d366";c.fill();
+  c.fillStyle="#fff";c.font='800 40px Figtree';c.textAlign="center";c.fillText("✆",X+75,RODA+90);c.textAlign="left";
+  c.fillStyle="#fff";c.font='800 34px Figtree';c.fillText("Peça pelo WhatsApp",X+140,RODA+62);
+  c.fillStyle="#ffffffaa";c.font='600 25px Figtree';c.fillText(D.lojas.slice(0,2).map(l=>`${l.nome} ${fone(l.whatsapp)}`).join("   ·   "),X+140,RODA+104);
   return await new Promise(ok=>cv.toBlob(ok,"image/png"))}
 
 const ESTILOS=[["ficha","Ficha"],["destaque","Destaque"],["escuro","Escuro"],["amarelo","Amarelo"]];
