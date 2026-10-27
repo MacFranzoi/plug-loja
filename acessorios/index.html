@@ -481,15 +481,26 @@ function quebra(c,txt,larg,max){const ps=txt.split(/\s+/),L=[];let l="";
   for(const p of ps){const t=l?l+" "+p:p;if(c.measureText(t).width>larg&&l){L.push(l);l=p}else l=t}if(l)L.push(l);
   if(L.length>max){L.length=max;L[max-1]=L[max-1].replace(/\s*\S*$/,"")+"…"}return L}
 function rr(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r)}
+const _ehFoto=new Map();
+function ehFotoAmbiente(im){ // borda da imagem não é branca = foto de ambiente: preenche o cartão em vez de ficar com moldura
+  if(_ehFoto.has(im.src))return _ehFoto.get(im.src);
+  let r=false;try{const t=document.createElement("canvas");t.width=t.height=40;const x=t.getContext("2d");x.drawImage(im,0,0,40,40);
+    const d=x.getImageData(0,0,40,40).data;let n=0,claro=0;
+    for(let k=0;k<40;k++)for(const [a,b] of [[k,0],[k,39],[0,k],[39,k]]){const o=(b*40+a)*4;n++;if(d[o]>232&&d[o+1]>232&&d[o+2]>232)claro++}
+    r=claro/n<0.6}catch(e){}
+  _ehFoto.set(im.src,r);return r}
 async function fotosNoCartao(c,it,foto,x,y,w,h,m,baixo){
   const sel=[].concat(foto).filter(k=>it.fs[k]!==undefined).slice(0,4);if(!sel.length)sel.push(0);
   const ims=[];for(const k of sel){try{ims.push(await carrega(it.fs[k]))}catch(e){}}if(!ims.length)return;
-  const ix=x+m,iy=y+m,iw=w-2*m,ih=h-2*m-(baixo||0);
   const cabe=(im,bx,by,bw,bh)=>{const k=Math.min(bw/im.width,bh/im.height);c.drawImage(im,bx+(bw-im.width*k)/2,by+(bh-im.height*k)/2,im.width*k,im.height*k)};
+  const cobre=(im,bx,by,bw,bh)=>{const k=Math.max(bw/im.width,bh/im.height),sw=bw/k,sh=bh/k;c.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,bx,by,bw,bh)};
   c.save();rr(c,x,y,w,h,48);c.clip();
-  if(ims.length===1)cabe(ims[0],ix,iy,iw,ih);
-  else{const g=18,th=Math.round(ih*0.3),mh=ih-th-g;cabe(ims[0],ix,iy,iw,mh);const n=ims.length-1,tw=(iw-g*(n-1))/n;
-    ims.slice(1).forEach((im,i)=>{const tx=ix+i*(tw+g),ty=iy+mh+g;rr(c,tx,ty,tw,th,24);c.fillStyle="#fff";c.fill();c.strokeStyle="#e7e4dc";c.lineWidth=3;c.stroke();c.save();rr(c,tx,ty,tw,th,24);c.clip();cabe(im,tx+10,ty+10,tw-20,th-20);c.restore()})}
+  if(ims.length===1){if(ehFotoAmbiente(ims[0]))cobre(ims[0],x,y,w,h);else cabe(ims[0],x+m,y+m,w-2*m,h-2*m-(baixo||0))}
+  else{const ix=x+m,iy=y+m,iw=w-2*m,ih=h-2*m-(baixo||0),g=18,th=Math.round(ih*0.3),mh=ih-th-g;
+    if(ehFotoAmbiente(ims[0])){c.save();rr(c,ix,iy,iw,mh,30);c.clip();cobre(ims[0],ix,iy,iw,mh);c.restore()}else cabe(ims[0],ix,iy,iw,mh);
+    const n=ims.length-1,tw=(iw-g*(n-1))/n;
+    ims.slice(1).forEach((im,i)=>{const tx=ix+i*(tw+g),ty=iy+mh+g;rr(c,tx,ty,tw,th,24);c.fillStyle="#fff";c.fill();c.save();rr(c,tx,ty,tw,th,24);c.clip();
+      if(ehFotoAmbiente(im))cobre(im,tx,ty,tw,th);else cabe(im,tx+10,ty+10,tw-20,th-20);c.restore();rr(c,tx,ty,tw,th,24);c.strokeStyle="#e7e4dc";c.lineWidth=3;c.stroke()})}
   c.restore()}
 async function estFicha(it,foto){await document.fonts.ready;
   try{await document.fonts.load('800 80px "Bricolage Grotesque"');await document.fonts.load('600 40px Figtree');await document.fonts.load('800 40px Figtree')}catch(e){}
