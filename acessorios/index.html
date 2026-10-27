@@ -501,10 +501,22 @@ function desenhaInfos(c,it,x,y,w,maxLin,escuro){const L=infosTop(it,maxLin*2);if
     c.fillStyle=escuro?"#fff":"#0c0c0d";c.font='800 30px Figtree';c.fillText(quebra(c,b,cw-40,1)[0],cx+22,cy+74)});
   return y+Math.ceil(L.length/2)*(ch+g)-g}
 const RC=72,RT=46; // arredondamento: cartão das fotos e cada foto da grade
+const _caixa=new Map();
+function caixaProduto(im){ // onde o produto está dentro da foto (ignora o branco em volta)
+  if(_caixa.has(im.src))return _caixa.get(im.src);
+  let r={x:0,y:0,w:im.width,h:im.height};
+  try{const S=220,k=Math.min(1,S/Math.max(im.width,im.height)),tw=Math.max(1,Math.round(im.width*k)),th=Math.max(1,Math.round(im.height*k));
+    const t=document.createElement("canvas");t.width=tw;t.height=th;const x=t.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,tw,th);x.drawImage(im,0,0,tw,th);
+    const d=x.getImageData(0,0,tw,th).data;let x0=tw,y0=th,x1=-1,y1=-1;
+    for(let yy=0;yy<th;yy++)for(let xx=0;xx<tw;xx++){const o=(yy*tw+xx)*4;if(d[o]<236||d[o+1]<236||d[o+2]<236){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(yy<y0)y0=yy;if(yy>y1)y1=yy}}
+    if(x1>x0&&y1>y0){const m=2;x0=Math.max(0,x0-m);y0=Math.max(0,y0-m);x1=Math.min(tw-1,x1+m);y1=Math.min(th-1,y1+m);
+      r={x:x0/k,y:y0/k,w:(x1-x0+1)/k,h:(y1-y0+1)/k}}}catch(e){}
+  _caixa.set(im.src,r);return r}
 async function fotosNoCartao(c,it,foto,x,y,w,h,m,baixo){
   const sel=[].concat(foto).filter(k=>it.fs[k]!==undefined).slice(0,4);if(!sel.length)sel.push(0);
   const ims=[];for(const k of sel){try{ims.push(await carrega(it.fs[k]))}catch(e){}}if(!ims.length)return;
-  const cabe=(im,bx,by,bw,bh)=>{const k=Math.min(bw/im.width,bh/im.height);c.drawImage(im,bx+(bw-im.width*k)/2,by+(bh-im.height*k)/2,im.width*k,im.height*k)};
+  // fundo branco: enquadra só o produto (corta o branco que sobra) e centraliza com a mesma margem para todas
+  const cabe=(im,bx,by,bw,bh)=>{const b=caixaProduto(im),k=Math.min(bw/b.w,bh/b.h);c.drawImage(im,b.x,b.y,b.w,b.h,bx+(bw-b.w*k)/2,by+(bh-b.h*k)/2,b.w*k,b.h*k)};
   const cobre=(im,bx,by,bw,bh)=>{const k=Math.max(bw/im.width,bh/im.height)*1.07,sw=bw/k,sh=bh/k;c.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,bx,by,bw,bh)};
   // foto de ambiente: preenche; se o corte for grande demais, mostra inteira sobre ela mesma desfocada
   const enche=(im,bx,by,bw,bh)=>{const r=(bw/bh)/(im.width/im.height);if(r>0.74&&r<1.36){cobre(im,bx,by,bw,bh);return}
@@ -522,7 +534,7 @@ async function fotosNoCartao(c,it,foto,x,y,w,h,m,baixo){
       const tx=x+a*w+(E?0:g/2),ty=y+b*h+(T?0:g/2),tw=cw*w-(E?0:g/2)-(D?0:g/2),th=ch*h-(T?0:g/2)-(B?0:g/2);
       const ri=18,rad=[T&&E?RC:ri,T&&D?RC:ri,B&&D?RC:ri,B&&E?RC:ri];
       const amb=ehFotoAmbiente(im);c.save();c.beginPath();c.roundRect(tx,ty,tw,th,rad);c.fillStyle="#fff";c.fill();c.clip();
-      if(amb)enche(im,tx,ty,tw,th);else cabe(im,tx+30,ty+30,tw-60,th-60);c.restore()})}
+      if(amb)enche(im,tx,ty,tw,th);else{const mg=Math.round(Math.min(tw,th)*.12);cabe(im,tx+mg,ty+mg,tw-2*mg,th-2*mg)}c.restore()})}
   c.restore()}
 async function estFicha(it,foto){await document.fonts.ready;
   try{await document.fonts.load('800 80px "Bricolage Grotesque"');await document.fonts.load('600 40px Figtree');await document.fonts.load('800 40px Figtree')}catch(e){}
