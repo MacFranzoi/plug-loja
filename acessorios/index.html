@@ -486,6 +486,13 @@ function quebra(c,txt,larg,max){const ps=txt.split(/\s+/),L=[];let l="";
   for(const p of ps){const t=l?l+" "+p:p;if(c.measureText(t).width>larg&&l){L.push(l);l=p}else l=t}if(l)L.push(l);
   if(L.length>max){L.length=max;L[max-1]=L[max-1].replace(/\s*\S*$/,"")+"…"}return L}
 function rr(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r)}
+// promoção nos stories: "De R$ X por" com o preço antigo riscado + selo vermelho do desconto
+const emPromo=it=>it.promo&&it.p0>it.p;
+function dePor(c,it,x,y,centro){const a="De ",b=brl(it.p0),d=" por",wa=c.measureText(a).width,wb=c.measureText(b).width,wt=wa+wb+c.measureText(d).width;
+  const al=c.textAlign;c.textAlign="left";let x0=centro?x-wt/2:x;c.fillText(a,x0,y);c.fillText(b,x0+wa,y);c.fillText(d,x0+wa+wb,y);
+  const fs=parseInt(c.font.match(/(\d+)px/)[1]);c.fillRect(x0+wa-2,y-fs*.33,wb+4,Math.max(2,fs*.08));c.textAlign=al}
+function seloPromo(c,it,x,y){const al=c.textAlign;c.textAlign="left";c.font='800 34px Figtree';const t=it.selo||"OFERTA",w=c.measureText(t).width+36;
+  rr(c,x,y-40,w,54,27);c.fillStyle="#ff3b30";c.fill();c.fillStyle="#fff";c.fillText(t,x+18,y-1);c.textAlign=al;return w}
 const _ehFoto=new Map();
 function ehFotoAmbiente(im){ // borda da imagem não é branca = foto de ambiente: preenche o cartão em vez de ficar com moldura
   if(_ehFoto.has(im.src))return _ehFoto.get(im.src);
@@ -559,7 +566,9 @@ async function estFicha(it,foto){await document.fonts.ready;
   let y=FY+FH+76;const FIM=H-160;
   c.fillStyle=CINZA;c.font='800 26px Figtree';c.fillText(it.cat.toUpperCase(),X,y);
   c.fillStyle=TINTA;c.font='800 62px "Bricolage Grotesque"';for(const l of quebra(c,it.n,LW,2)){y+=70;c.fillText(l,X,y)}
-  y+=92;c.font='800 86px "Bricolage Grotesque"';c.fillText(brl(it.p),X-2,y);
+  if(emPromo(it)){y+=58;c.fillStyle=CINZA;c.font='700 34px Figtree';dePor(c,it,X,y)}
+  y+=92;c.fillStyle=TINTA;c.font='800 86px "Bricolage Grotesque"';c.fillText(brl(it.p),X-2,y);
+  if(emPromo(it)){const w=c.measureText(brl(it.p)).width;seloPromo(c,it,X+w+24,y-14)}
   {const G6=it.gar;y+=34;rr(c,X,y,LW,96,24);c.fillStyle="#fff";c.fill();c.strokeStyle=(G6?"#d8eedf":"#e2dfd6");c.lineWidth=2;c.stroke();
     c.save();c.translate(X+24,y+22);c.scale(2.2,2.2);c.fillStyle=(G6?"#16a34a":"#9a978d");c.fill(new Path2D("M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"));
     c.strokeStyle="#fff";c.lineWidth=2.2;c.lineCap="round";c.lineJoin="round";c.stroke(new Path2D("m8.5 12 2.4 2.4 4.6-4.8"));c.restore();
@@ -602,7 +611,11 @@ async function estDestaque(it,foto,amarelo){await document.fonts.ready;
   // preço como adesivo inclinado
   c.font='800 84px "Bricolage Grotesque"';const pt=brl(it.p),pw=c.measureText(pt).width+70;
   c.save();c.translate(W-X-pw/2+18,CY+CH-6);c.rotate(-0.06);c.shadowColor="#0000003a";c.shadowBlur=30;c.shadowOffsetY=12;
-  rr(c,-pw/2,-62,pw,124,30);c.fillStyle=amarelo?"#0c0c0d":"#ffe01a";c.fill();c.shadowColor="transparent";c.fillStyle=amarelo?"#ffe01a":"#141200";c.textAlign="center";c.fillText(pt,0,30);c.restore();c.textAlign="left";
+  rr(c,-pw/2,-62,pw,124,30);c.fillStyle=amarelo?"#0c0c0d":"#ffe01a";c.fill();c.shadowColor="transparent";c.fillStyle=amarelo?"#ffe01a":"#141200";c.textAlign="center";c.fillText(pt,0,30);
+  if(emPromo(it)){c.font='700 30px Figtree';const t="De "+brl(it.p0)+" por",tw=c.measureText(t).width+40;c.shadowColor="#00000026";c.shadowBlur=20;c.shadowOffsetY=8;
+    rr(c,pw/2-tw,-122,tw,56,28);c.fillStyle="#fff";c.fill();c.shadowColor="transparent";c.fillStyle="#3a382f";dePor(c,it,pw/2-tw/2,-84,true);
+    c.font='800 34px Figtree';seloPromo(c,it,-pw/2-c.measureText(it.selo||"OFERTA").width-36-14,16)}
+  c.restore();c.textAlign="left";
   // nome e destaques
   let y=CY+CH+120;c.fillStyle=CINZA;c.font='800 26px Figtree';c.fillText(it.cat.toUpperCase(),X,y);
   c.fillStyle=TINTA;c.font='800 64px "Bricolage Grotesque"';for(const l of quebra(c,it.n,LW,2)){y+=72;c.fillText(l,X,y)}
@@ -677,13 +690,15 @@ async function estEscuro(it,foto){await document.fonts.ready;
   c.fillStyle="#fff";c.font='800 68px "Bricolage Grotesque"';for(const l of quebra(c,it.n,LW,2)){y+=76;c.fillText(l,X,y)}
   // informações em lista, com fios
   const PRECO=FY+FH-250;const info=infosTop(it,4);let yy=y+40;
-  const cab=Math.max(0,Math.floor((PRECO-130-yy)/62));
+  const cab=Math.max(0,Math.floor((PRECO-(emPromo(it)?190:130)-yy)/62));
   for(const [a,b] of info.slice(0,Math.min(cab,4))){c.fillStyle="#ffffff1f";c.fillRect(X,yy,LW,2);yy+=44;
     c.fillStyle="#ffffff80";c.font='600 27px Figtree';c.fillText(quebra(c,a,LW*.42,1)[0],X,yy);
     c.fillStyle="#fff";c.font='800 27px Figtree';const v=quebra(c,b,LW*.55,1)[0];c.fillText(v,X+LW-c.measureText(v).width,yy);yy+=18}
   if(info.length&&cab)c.fillStyle="#ffffff1f",c.fillRect(X,yy,LW,2);
   // preço + garantia
+  if(emPromo(it)){c.fillStyle="#ffffffaa";c.font='700 34px Figtree';dePor(c,it,X,PRECO-120)}
   c.fillStyle=VOLT;c.font='800 124px "Bricolage Grotesque"';const pt=brl(it.p);c.fillText(pt,X-4,PRECO);
+  if(emPromo(it))seloPromo(c,it,X+c.measureText(pt).width+20,PRECO-24);
   {const G6=it.gar;c.save();c.translate(X,PRECO+28);c.scale(1.3,1.3);c.fillStyle=G6?"#3ddc5a":"#9a978d";c.fill(new Path2D("M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"));
     c.strokeStyle="#0d0d10";c.lineWidth=2.4;c.lineCap="round";c.lineJoin="round";c.stroke(new Path2D("m8.5 12 2.4 2.4 4.6-4.8"));c.restore();
     c.fillStyle="#ffffffcc";c.font='700 27px Figtree';c.fillText((G6?"Garantia de 6 meses":"Garantia de 3 meses")+"  ·  à vista",X+44,PRECO+56)}
@@ -754,10 +769,12 @@ async function estSurpresa(it,foto){
   const tam=Math.round(84*FT[2]);c.fillStyle=P.t;c.font=`${FT[0]} ${tam}px ${FT[1]}`;
   for(const l of quebra(c,FT[3]?it.n.toUpperCase():it.n,LW,2)){y+=Math.round(tam*1.08);c.fillText(l,AX,y)}
   // preço e garantia
-  const pt=brl(it.p);
-  if(pilula){c.font='800 92px "Bricolage Grotesque"';const w=c.measureText(pt).width+84,px=centro?(W-w)/2:X;rr(c,px,1440,w,128,64);c.fillStyle=P.a;c.fill();
-    c.fillStyle=P.ai;c.textAlign="left";c.fillText(pt,px+42,1538)}
-  else{c.fillStyle=P.cl?P.t:P.a;c.font='800 124px "Bricolage Grotesque"';c.fillText(pt,AX,1560)}
+  const pt=brl(it.p),pr=emPromo(it);
+  if(pr){c.fillStyle=P.s;c.font='700 34px Figtree';dePor(c,it,AX,1418,centro)}
+  if(pilula){c.font='800 92px "Bricolage Grotesque"';const w=c.measureText(pt).width+84,sw=pr?c.measureText(it.selo||"OFERTA").width*.37+56:0,px=centro?(W-w-sw)/2:X;
+    rr(c,px,1440,w,128,64);c.fillStyle=P.a;c.fill();c.fillStyle=P.ai;c.textAlign="left";c.fillText(pt,px+42,1538);if(pr)seloPromo(c,it,px+w+20,1520)}
+  else{c.fillStyle=P.cl?P.t:P.a;c.font='800 124px "Bricolage Grotesque"';const w=c.measureText(pt).width,px=centro&&pr?(W-w-150)/2:AX;
+    if(centro&&pr)c.textAlign="left";c.fillText(pt,px,1560);if(pr)seloPromo(c,it,(centro?px:AX)+w+20,1536)}
   c.textAlign=centro?"center":"left";c.fillStyle=P.s;c.font='700 27px Figtree';
   c.fillText((it.gar?"Garantia de 6 meses":"Garantia de 3 meses")+"  ·  à vista",AX,1622);
   // rodapé, acima do campo de resposta do Instagram
