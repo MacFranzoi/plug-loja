@@ -72,7 +72,8 @@ input[type=checkbox]{width:18px;height:18px;accent-color:#ffe01a;cursor:pointer}
 .previa div{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed #222}
 .previa div:last-child{border:0}
 .rodape{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
-.toast{position:fixed;left:50%;top:18px;transform:translate(-50%,-150%);background:var(--volt);color:#0c0c0d;font-weight:800;padding:10px 16px;border-radius:12px;z-index:99;transition:transform .2s}
+.pc-eq{display:none!important}
+.toast{position:fixed;left:50%;top:18px;transform:translate(-50%,-300%);background:var(--volt);color:#0c0c0d;font-weight:800;padding:10px 16px;border-radius:12px;z-index:99;transition:transform .2s}
 .toast.on{transform:translate(-50%,0)}.toast.err{background:var(--bad)}
 .bloqueio{max-width:420px;margin:12vh auto;text-align:center;padding:0 16px}
 .bloqueio h1{font:800 28px var(--display)}
@@ -292,7 +293,7 @@ function editarCombo(c) {
   const itens = () => { const soma = somaCombo(c);
     $("cItens").innerHTML = c.itens.map((i, n) => `<div><img src="${esc(i.foto ? (i.foto.startsWith("/") ? ".." + i.foto : i.foto) : "../logo.png")}" alt=""><span>${esc(i.nome)}<br><small style="color:var(--mut)">${brl(precoAtual(i.chave) ?? i.preco ?? 0)}</small></span>
       <input type="number" min="1" max="20" value="${i.qtd}" data-q="${n}"><button class="btn s r" data-tira="${n}">×</button></div>`).join("") + `<div style="justify-content:flex-end;border:0"><span class="sub" style="flex:0">Soma normal: <b>${brl(soma)}</b></span></div>`;
-    const fim = v => +(Math.ceil(v + 0.01) - 0.01).toFixed(2);
+    const fim = v => PC.fimAce(v, soma);
     $("cSug").innerHTML = soma ? [5, 10, 15, 20].map(p => `<button class="btn s" data-sug="${fim(soma * (1 - p / 100))}">-${p}% · ${brl(fim(soma * (1 - p / 100)))}</button>`).join("") : ""; };
   itens();
   $("cBusca").oninput = e => { const t = sa(e.target.value); const R = t.length < 2 ? [] : LIN.filter(l => sa(l.nome + " " + (l.cod || "")).includes(t)).slice(0, 30);

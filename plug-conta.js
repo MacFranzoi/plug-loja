@@ -18,8 +18,11 @@
   PC.kAce = it => "a:" + it.c + "|" + it.n;
   PC.kCel = (m, v) => "c:" + m.slug + "|" + v.id;
   // final ,99 nos acessórios; 49,99/99,99 nos celulares (regra da Plug: arredonda para cima, mas fica abaixo do preço normal)
-  const fimAce = (v, base) => { let x = Math.ceil(v + 0.01) - 0.01; if (x >= base) x = Math.floor(v) - 0.01; return +x.toFixed(2); };
-  const fimCel = (v, base) => { let x = Math.ceil((v + 0.01) / 50) * 50 - 0.01; if (x >= base) x = Math.floor((v + 0.01) / 50) * 50 - 0.01; return +x.toFixed(2); };
+  const cent = v => Math.round(v * 100) / 100;
+  // menor preço terminado em ,99 (ou 49,99/99,99) que seja ≥ v; se encostar no preço normal, desce um degrau
+  const fimAce = (v, base) => { v = cent(v); let x = Math.ceil(cent(v - 0.99)) + 0.99; if (x >= base) x -= 1; return cent(x); };
+  const fimCel = (v, base) => { v = cent(v); let x = Math.ceil(cent(v - 49.99) / 50) * 50 + 49.99; if (x >= base) x -= 50; return cent(x); };
+  PC.fimAce = fimAce;
   function aplica(base, p, cel) {
     if (p.tipo === "preco") return p.valor < base ? p.valor : null;
     const v = p.tipo === "pct" ? base * (1 - p.valor / 100) : base - p.valor;
@@ -33,7 +36,7 @@
   // melhor promoção (menor preço) que vale para o item
   PC.promoAce = (it, base, lista) => (lista || PC.ofertas.promos).filter(p => casaAce(p, it)).map(p => ({ p, preco: aplica(base, p, false) })).filter(x => x.preco).sort((a, b) => a.preco - b.preco)[0] || null;
   PC.promoCel = (m, v, base, lista) => (lista || PC.ofertas.promos).filter(p => casaCel(p, m, v)).map(p => ({ p, preco: aplica(base, p, true) })).filter(x => x.preco).sort((a, b) => a.preco - b.preco)[0] || null;
-  const selo = (x, base) => x.p.selo || (x.p.tipo === "pct" ? `-${Math.round(x.p.valor)}%` : `-${Math.round((1 - x.preco / base) * 100)}%`);
+  const selo = (x, base) => x.p.selo || `-${Math.max(1, Math.round((1 - x.preco / base) * 100))}%`; // desconto real, já arredondado
 
   // acessórios: troca o preço, marca "de/por", esconde ocultos, liga destaques, cria os combos como produtos
   PC.aplicaAcessorios = function (itens) {
