@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0c0c0d">
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap">
 <style>
 :root{
   --ink:#0c0c0d;--ink2:#18181b;--line:#e7e4dc;--paper:#f6f4ee;--card:#fff;--muted:#77746b;
@@ -450,7 +450,7 @@ let compIt=null,compFoto=0,stBlob=null;
 const linkDe=it=>location.origin+location.pathname+"#p="+it.slug;
 let stPronto=null;
 let fotosSel=[0];
-function abreComp(it,foto){compIt=it;compFoto=foto||0;fotosSel=[compFoto];stBlob=null;stPronto=stories(it,fotosSel).then(b=>{if(compIt===it)stBlob=b;return b}).catch(()=>null);$("previa").classList.remove("on");$("gerando").hidden=true;
+function abreComp(it,foto){_surp=null;compIt=it;compFoto=foto||0;fotosSel=[compFoto];stBlob=null;stPronto=stories(it,fotosSel).then(b=>{if(compIt===it)stBlob=b;return b}).catch(()=>null);$("previa").classList.remove("on");$("gerando").hidden=true;
   $("menu").classList.add("on");$("fundo2").classList.add("on")}
 function fechaComp(){$("menu").classList.remove("on");$("fundo2").classList.remove("on")}
 $("fundo2").onclick=fechaComp;$("mFecha").onclick=fechaComp;
@@ -464,7 +464,8 @@ const podeComp=()=>window.isSecureContext&&!!navigator.share;
 async function mandaInsta(){if(!podeComp())return false;const f=new File([stBlob],"plug-"+compIt.slug+".png",{type:"image/png"});
   if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]});return true}catch(e){return e.name==="AbortError"}}return false}
 function desenhaEstilos(){$("estilos").innerHTML=ESTILOS.map(([k,n])=>`<button class="${k===estilo?"on":""}" data-e="${k}">${n}</button>`).join("")}
-$("estilos").onclick=async e=>{const b=e.target.closest("[data-e]");if(!b||b.dataset.e===estilo)return;estilo=b.dataset.e;try{localStorage.setItem("plugEstilo",estilo)}catch(x){}
+$("estilos").onclick=async e=>{const b=e.target.closest("[data-e]");if(!b||(b.dataset.e===estilo&&estilo!=="surpresa"))return;estilo=b.dataset.e;
+  if(estilo==="surpresa"){_surp=null;toast("Toque de novo em 🎲 para outro visual")}try{localStorage.setItem("plugEstilo",estilo)}catch(x){}
   desenhaEstilos();$("prevImg").style.opacity=".4";stBlob=await stories(compIt,fotosSel);mostraPrevia()};
 function desenhaFotos(){const it=compIt;if(!it||it.fs.length<2){$("selFotos").innerHTML="";return}
   $("selFotos").innerHTML='<span>Fotos no stories:</span>'+it.fs.map((f,k)=>{const n=fotosSel.indexOf(k);return `<button class="${n>=0?"on":""}" data-f="${k}"><img src="${f}" alt="">${n>=0?`<b>${n+1}</b>`:""}</button>`}).join("")}
@@ -692,9 +693,83 @@ async function estEscuro(it,foto){await document.fonts.ready;
   c.fillStyle="#ffffff99";c.font='600 24px Figtree';c.fillText(D.lojas.slice(0,2).map(l=>`${l.nome} ${fone(l.whatsapp)}`).join("   ·   "),X,FY+FH-60);
   return await new Promise(ok=>cv.toBlob(ok,"image/png"))}
 
-const ESTILOS=[["ficha","Ficha"],["destaque","Destaque"],["escuro","Escuro"],["amarelo","Amarelo"]];
+// surpresa: cada toque sorteia paleta, fonte, posição e enfeite (o sorteio fica guardado ao trocar as fotos)
+const PALETAS=[ // f: degradê do fundo, t: texto, s: texto fraco, a/ai: destaque e texto sobre ele, cl: fundo claro
+  {f:["#f4efe7","#e6ddcf"],t:"#151310",s:"#71695d",a:"#151310",ai:"#f4efe7",cl:1},
+  {f:["#16161a","#060607"],t:"#fff",s:"#ffffff99",a:"#ffe01a",ai:"#141200",cl:0},
+  {f:["#ead9bf","#d2b892"],t:"#2a1f15",s:"#6b5640",a:"#2a1f15",ai:"#ead9bf",cl:1},
+  {f:["#e0e6da","#bccab3"],t:"#1c2a1e",s:"#55644f",a:"#1c2a1e",ai:"#e0e6da",cl:1},
+  {f:["#f6e0da","#e6bfb4"],t:"#3b1c18",s:"#80554d",a:"#3b1c18",ai:"#f6e0da",cl:1},
+  {f:["#2440e0","#121f8f"],t:"#fff",s:"#ffffffb0",a:"#ffe01a",ai:"#141200",cl:0},
+  {f:["#ffe01a","#f2c800"],t:"#0c0c0d",s:"#4a4200",a:"#0c0c0d",ai:"#ffe01a",cl:1},
+  {f:["#2c2c30","#161618"],t:"#fff",s:"#ffffff99",a:"#ff6a3d",ai:"#fff",cl:0},
+  {f:["#ffffff","#ececec"],t:"#0c0c0d",s:"#77736a",a:"#ffe01a",ai:"#141200",cl:1}];
+const FONTES=[["400",'"Instrument Serif"',1.2,0],["italic 400",'"Instrument Serif"',1.2,0],["800",'"Bricolage Grotesque"',1,0],["800","Figtree",.82,1]]; // peso, família, escala, caixa alta
+const sorteia=a=>a[Math.floor(Math.random()*a.length)];
+let _surp=null,_surpAnt="";
+async function estSurpresa(it,foto){
+  if(!_surp){let k;do{_surp={P:sorteia(PALETAS),FT:sorteia(FONTES),topo:Math.random()<.5,centro:Math.random()<.5,lado:sorteia([-1,1]),
+      deco:sorteia(["palavra","circulo","arco","moldura","faixa"]),pilula:Math.random()<.5,rot:Math.random()<.35?(Math.random()-.5)*.22:0,dg:Math.random()<.5};
+      k=[PALETAS.indexOf(_surp.P),_surp.deco,_surp.topo].join()}while(k===_surpAnt);_surpAnt=k}
+  const {P,FT,topo,centro,lado,deco,pilula,rot,dg}=_surp;
+  await document.fonts.ready;
+  try{await document.fonts.load(`${FT[0]} 80px ${FT[1]}`);await document.fonts.load('800 80px "Bricolage Grotesque"');await document.fonts.load('700 40px Figtree');await document.fonts.load('800 40px Figtree')}catch(e){}
+  const cv=$("cv"),c=cv.getContext("2d"),W=1080,H=1920,X=90,LW=W-180,AX=centro?W/2:X;
+  c.textAlign="left";c.letterSpacing="0px";
+  const bg=c.createLinearGradient(0,0,dg?W:0,H);bg.addColorStop(0,P.f[0]);bg.addColorStop(1,P.f[1]);c.fillStyle=bg;c.fillRect(0,0,W,H);
+  {const gr=document.createElement("canvas");gr.width=gr.height=256;const gx=gr.getContext("2d"),gd=gx.createImageData(256,256);
+   for(let q=0;q<gd.data.length;q+=4){const v=Math.random()*255;gd.data[q]=gd.data[q+1]=gd.data[q+2]=v;gd.data[q+3]=9}gx.putImageData(gd,0,0);c.fillStyle=c.createPattern(gr,"repeat");c.fillRect(0,0,W,H)}
+  // área do produto: embaixo do texto (topo) ou em cima dele
+  const PB=topo?{y:560,h:830}:{y:240,h:840},cx=W/2+(centro?0:lado*60),cy=PB.y+PB.h/2;
+  const ARCO=[320,320,40,40];
+  c.save();
+  if(deco==="circulo"){c.fillStyle=P.cl?"#ffffff8c":"#ffffff12";c.beginPath();c.arc(cx,cy,PB.h*.46,0,6.3);c.fill()}
+  else if(deco==="arco"){rr(c,cx-320,PB.y+10,640,PB.h-20,ARCO);c.fillStyle=P.cl?"#ffffffa0":"#ffffff14";c.fill()}
+  else if(deco==="palavra"){const pal=(it.cat.split(/\s+/)[0]||"PLUG").toUpperCase();c.font='800 300px "Bricolage Grotesque"';const s=Math.min(1,(W-40)/c.measureText(pal).width);
+    c.font=`800 ${Math.floor(300*s)}px "Bricolage Grotesque"`;c.fillStyle=P.cl?"#00000012":"#ffffff12";c.textAlign="center";c.fillText(pal,W/2,cy+100*s);c.textAlign="left"}
+  else if(deco==="faixa"){c.globalAlpha=.92;c.fillStyle=P.a;c.translate(W/2,cy);c.rotate(-.12);c.fillRect(-W,-110,W*2,220)}
+  else{rr(c,40,40,W-80,H-80,56);c.strokeStyle=P.cl?"#00000026":"#ffffff2e";c.lineWidth=3;c.stroke()}
+  c.restore();
+  // produto: sem fundo com sombra; foto de ambiente vai num quadro
+  const sel=[].concat(foto).filter(k=>it.fs[k]!==undefined).slice(0,4);if(!sel.length)sel.push(0);
+  const ims=[];for(const k of sel){try{ims.push(await carrega(it.fs[k]))}catch(e){}}
+  if(ims[0]){
+    if(ehFotoAmbiente(ims[0])){const im=ims[0],bw=760,bh=PB.h-40,bx=cx-bw/2,by=PB.y+20,k=Math.max(bw/im.width,bh/im.height),sw=bw/k,sh=bh/k,r=deco==="arco"?[380,380,40,40]:48;
+      c.save();c.shadowColor="#00000055";c.shadowBlur=60;c.shadowOffsetY=24;rr(c,bx,by,bw,bh,r);c.fillStyle="#000";c.fill();c.restore();
+      c.save();rr(c,bx,by,bw,bh,r);c.clip();c.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,bx,by,bw,bh);c.restore()}
+    else{const pr=semFundo(ims[0]),k=Math.min(LW*.86/pr.width,PB.h*.78/pr.height),pw=pr.width*k,ph=pr.height*k,py=cy-ph/2;
+      c.save();c.globalAlpha=P.cl?.35:.6;const sg=c.createRadialGradient(cx,py+ph+16,0,cx,py+ph+16,pw*.5);sg.addColorStop(0,"#000000cc");sg.addColorStop(1,"#00000000");
+      c.fillStyle=sg;c.beginPath();c.ellipse(cx,py+ph+16,pw*.5,36,0,0,6.3);c.fill();c.restore();
+      c.save();c.translate(cx,cy);c.rotate(rot);c.shadowColor=P.cl?"#00000040":"#000000aa";c.shadowBlur=50;c.shadowOffsetY=26;c.drawImage(pr,-pw/2,-ph/2,pw,ph);c.restore()}
+    const ex=ims.slice(1);if(ex.length){const tw=150,g=20;let x0=centro?(W-(ex.length*tw+(ex.length-1)*g))/2:X;const y0=PB.y+PB.h-tw+10;
+      ex.forEach(im=>{rr(c,x0,y0,tw,tw,32);c.fillStyle=P.cl?"#ffffffd9":"#ffffff14";c.fill();const e=ehFotoAmbiente(im)?im:semFundo(im),k=Math.min((tw-28)/e.width,(tw-28)/e.height);
+        c.drawImage(e,x0+(tw-e.width*k)/2,y0+(tw-e.height*k)/2,e.width*k,e.height*k);x0+=tw+g})}}
+  // marca
+  try{const lg=await carrega("plug-marca.png"),h=46,w=lg.width*h/lg.height,pw=P.cl?w+52:w,lx=centro?(W-pw)/2:X;
+    if(P.cl){rr(c,lx,128,pw,74,37);c.fillStyle="#0c0c0d";c.fill();c.drawImage(lg,lx+26,142,w,h)}else c.drawImage(lg,lx,142,w,h)}catch(e){}
+  // categoria e nome
+  c.textAlign=centro?"center":"left";
+  let y=topo?300:PB.y+PB.h+60;
+  c.fillStyle=P.cl?P.s:P.a;c.font='800 24px Figtree';c.letterSpacing="6px";c.fillText((it.cat+(it.top?"  ·  MAIS VENDIDO":"")).toUpperCase(),AX,y);c.letterSpacing="0px";
+  const tam=Math.round(84*FT[2]);c.fillStyle=P.t;c.font=`${FT[0]} ${tam}px ${FT[1]}`;
+  for(const l of quebra(c,FT[3]?it.n.toUpperCase():it.n,LW,2)){y+=Math.round(tam*1.08);c.fillText(l,AX,y)}
+  // preço e garantia
+  const pt=brl(it.p);
+  if(pilula){c.font='800 92px "Bricolage Grotesque"';const w=c.measureText(pt).width+84,px=centro?(W-w)/2:X;rr(c,px,1440,w,128,64);c.fillStyle=P.a;c.fill();
+    c.fillStyle=P.ai;c.textAlign="left";c.fillText(pt,px+42,1538)}
+  else{c.fillStyle=P.cl?P.t:P.a;c.font='800 124px "Bricolage Grotesque"';c.fillText(pt,AX,1560)}
+  c.textAlign=centro?"center":"left";c.fillStyle=P.s;c.font='700 27px Figtree';
+  c.fillText((it.gar?"Garantia de 6 meses":"Garantia de 3 meses")+"  ·  à vista",AX,1622);
+  // rodapé, acima do campo de resposta do Instagram
+  c.fillStyle=P.t;c.font='800 28px Figtree';c.fillText("Peça pelo WhatsApp 💬",AX,1700);
+  c.fillStyle=P.s;c.font='600 24px Figtree';c.fillText(D.lojas.slice(0,2).map(l=>`${l.nome} ${fone(l.whatsapp)}`).join("   ·   "),AX,1742);
+  c.textAlign="left";
+  return await new Promise(ok=>cv.toBlob(ok,"image/png"))}
+
+const ESTILOS=[["ficha","Ficha"],["destaque","Destaque"],["escuro","Escuro"],["amarelo","Amarelo"],["surpresa","🎲 Surpresa"]];
 let estilo="ficha";try{estilo=localStorage.getItem("plugEstilo")||"ficha"}catch(e){}
 async function stories(it,foto,est){est=est||estilo;
+  if(est==="surpresa")return estSurpresa(it,foto);
   if(est==="destaque")return estDestaque(it,foto,false);if(est==="amarelo")return estDestaque(it,foto,true);
   if(est==="escuro")return estEscuro(it,foto);return estFicha(it,foto)}
 
