@@ -241,3 +241,8 @@ details[open] summary::after { content: " ▴"; }
   .selo { font-size: .56rem; padding: 4px 5px; }
   .abre .eyebrow { font-size: .66rem; }
 }
+
+/* promoções (aplicadas pela Academia na hora) */
+.selo.promo{background:#ffe01a;color:#0c0c0d}
+.de{font-size:13px;font-weight:600;color:#8a8a8a;text-decoration:line-through;margin-right:8px}
+.preco .de{display:block;margin:0}
