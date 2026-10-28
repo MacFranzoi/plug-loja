@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Painel de produtos · Plug</title>
+<link rel="icon" href="../favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c0c0d;--card:#141416;--card2:#1b1b1f;--line:#2a2a2e;--tx:#f4f4f2;--mut:#9a9aa0;--volt:#ffe01a;--ok:#4ade80;--bad:#ff7a7a;--display:"Bricolage Grotesque",Figtree,sans-serif;--body:Figtree,system-ui,sans-serif;--mono:"IBM Plex Mono",monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 var(--body)}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--volt)}
+.w{max-width:1180px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:20;background:#0c0c0df0;backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:12px;padding:12px 0;flex-wrap:wrap}
+.top h1{font:800 22px var(--display);margin:0;flex:1;min-width:180px}.top h1 i{font-style:normal;color:var(--volt)}
+.quem{color:var(--mut);font-size:13px}
+.abas{display:flex;gap:4px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+.abas button{all:unset;cursor:pointer;padding:8px 14px;border-radius:999px;color:var(--mut);font-weight:700;white-space:nowrap}
+.abas button.on{background:var(--volt);color:#0c0c0d}
+.abas button b{font:500 11px var(--mono);margin-left:4px;opacity:.75}
+main{padding:18px 0 140px}
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-weight:700;font-size:14px;white-space:nowrap}
+.btn:hover{border-color:#444}.btn.y{background:var(--volt);color:#0c0c0d;border-color:var(--volt)}.btn.r{color:var(--bad)}.btn.s{padding:6px 10px;font-size:13px;border-radius:10px}
+.btn[disabled]{opacity:.4;pointer-events:none}
+input,select{background:#0c0c0d;border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none;min-width:0}
+input:focus,select:focus{border-color:var(--volt)}
+.linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;scrollbar-width:thin}
+.chip{all:unset;cursor:pointer;padding:6px 11px;border-radius:999px;border:1px solid var(--line);font-size:13px;font-weight:600;white-space:nowrap;color:var(--mut)}
+.chip.on{border-color:var(--volt);color:var(--volt)}.chip small{font:500 11px var(--mono);margin-left:4px}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px}
+.seg button{all:unset;cursor:pointer;padding:6px 12px;border-radius:9px;font-weight:700;font-size:14px;color:var(--mut)}.seg button.on{background:var(--card2);color:var(--tx)}
+table{width:100%;border-collapse:collapse}
+th{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mut);text-align:left;padding:8px;border-bottom:1px solid var(--line);position:sticky;top:108px;background:var(--bg);z-index:5}
+td{padding:7px 8px;border-bottom:1px solid #1d1d21;vertical-align:middle}
+tr.sel td{background:#ffe01a12}
+tr:hover td{background:#ffffff06}
+td.f img{width:42px;height:42px;object-fit:contain;background:#fff;border-radius:8px;display:block}
+td.n b{display:block;font-weight:600}td.n small{color:var(--mut);font-size:12px}
+.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.de{color:var(--mut);text-decoration:line-through;font-size:12px;display:block}
+.por{color:var(--volt);font-weight:800}
+.tag{display:inline-block;font:500 10px var(--mono);text-transform:uppercase;padding:3px 6px;border-radius:6px;margin:1px 2px 1px 0;background:var(--card2);color:var(--mut)}
+.tag.p{background:var(--volt);color:#0c0c0d}.tag.o{background:#3a1d1d;color:var(--bad)}.tag.d{background:#1c2a1f;color:var(--ok)}
+input[type=checkbox]{width:18px;height:18px;accent-color:#ffe01a;cursor:pointer}
+.vazio{padding:40px;text-align:center;color:var(--mut)}
+.cartao{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+.cartao h3{margin:0 0 2px;font:800 18px var(--display)}
+.cartao .sub{color:var(--mut);font-size:13px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.desliga{opacity:.5}
+.barra{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#141416f5;border-top:1px solid var(--line);backdrop-filter:blur(10px);transform:translateY(110%);transition:transform .2s}
+.barra.on{transform:none}
+.barra .w{display:flex;gap:8px;align-items:center;padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom));flex-wrap:wrap}
+.barra b{margin-right:auto}
+.salvar{position:fixed;right:16px;bottom:16px;z-index:40;display:none}
+.salvar.on{display:flex}
+.salvar .btn{box-shadow:0 10px 30px #000a;padding:13px 18px;font-size:15px}
+.mod{position:fixed;inset:0;z-index:60;background:#000b;display:none;align-items:flex-start;justify-content:center;padding:6vh 16px;overflow:auto}
+.mod.on{display:flex}
+.mod .cx{background:var(--card);border:1px solid var(--line);border-radius:20px;width:min(620px,100%);padding:20px}
+.mod h2{margin:0 0 4px;font:800 22px var(--display)}
+.mod .sub{color:var(--mut);font-size:13px;margin-bottom:14px}
+.campo{display:grid;gap:5px;margin-bottom:12px}.campo>span{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.campo input,.campo select{width:100%}
+.previa{background:#0c0c0d;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;max-height:220px;overflow:auto}
+.previa div{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed #222}
+.previa div:last-child{border:0}
+.rodape{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;top:18px;transform:translate(-50%,-150%);background:var(--volt);color:#0c0c0d;font-weight:800;padding:10px 16px;border-radius:12px;z-index:99;transition:transform .2s}
+.toast.on{transform:translate(-50%,0)}.toast.err{background:var(--bad)}
+.bloqueio{max-width:420px;margin:12vh auto;text-align:center;padding:0 16px}
+.bloqueio h1{font:800 28px var(--display)}
+.res{position:absolute;z-index:70;background:var(--card2);border:1px solid var(--line);border-radius:12px;max-height:280px;overflow:auto;width:100%;margin-top:4px}
+.res div{padding:8px 10px;cursor:pointer;display:flex;justify-content:space-between;gap:8px;font-size:14px}.res div:hover{background:#ffffff0d}
+.citens div{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #222}
+.citens img{width:34px;height:34px;object-fit:contain;background:#fff;border-radius:6px}
+.citens span{flex:1}
+.citens input{width:60px}
+@media(max-width:700px){th{top:104px}.oc{display:none}td.f img{width:34px;height:34px}.top h1{font-size:19px}}
+</style>
+</head>
+<body>
+<div id="app"><div class="bloqueio"><h1>Carregando…</h1></div></div>
+<div class="toast" id="toast"></div>
+<script src="../plug-conta.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const PC = window.PlugConta, brl = PC.brl;
+const sa = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const novoId = () => Math.random().toString(36).slice(2, 10);
+let toastT; function toast(t, err) { const e = $("toast"); e.textContent = t; e.className = "toast on" + (err ? " err" : ""); clearTimeout(toastT); toastT = setTimeout(() => e.className = "toast", 2600); }
+
+/* ---------- estado ---------- */
+let ACE = [], CEL = [], O = null, sujo = false, aba = "produtos", tipo = "ace", filtro = "", busca = "", sel = new Set(), mostrar = "todos";
+const ROT_ALVO = { itens: "Produtos escolhidos", categoria: "Categoria de acessório", grupo: "Grupo da GestãoClick", tudo_acessorios: "Todos os acessórios",
+  modelo: "Modelo de celular (todas as variações)", marca: "Marca de celular", condicao: "Celulares por condição", tudo_celulares: "Todos os celulares" };
+const ROT_COND = { novo: "Lacrado", vitrine: "Vitrine" };
+
+// lista única de produtos: acessórios e cada variação de celular
+function linhas() {
+  const a = ACE.map(it => ({ k: PC.kAce(it), t: "ace", it, nome: it.n, sub: it.cat + " · " + it.g, cat: it.cat, foto: "../acessorios/" + it.f, fotoAbs: "/acessorios/" + it.f, preco: it.p, cod: it.c, oc: "a:" + it.c + "|" + it.n }));
+  const c = CEL.flatMap(m => m.variantes.map(v => ({ k: PC.kCel(m, v), t: "cel", m, v, nome: `${m.marca} ${m.nome} ${v.memoria}`, sub: `${ROT_COND[v.condicao] || v.condicao} · ${v.versao}`, cat: m.marca,
+    foto: m.foto ? "../" + m.foto : "", fotoAbs: m.foto ? "/" + m.foto : "", preco: v.pix, oc: "m:" + m.slug })));
+  return [...a, ...c];
+}
+let LIN = [];
+// preço com as promoções do painel (inclusive as ainda não salvas)
+function promoDe(l, lista) {
+  const ps = (lista || O.promos).filter(p => p.ativo !== false);
+  return l.t === "ace" ? PC.promoAce(l.it, l.preco, ps) : PC.promoCel(l.m, l.v, l.preco, ps);
+}
+const hoje = () => new Date().toLocaleDateString("sv-SE");
+const valendo = p => p.ativo !== false && (!p.inicio || p.inicio <= hoje()) && (!p.fim || p.fim >= hoje());
+function alvoTexto(p) {
+  if (p.alvo === "itens") return (p.chaves || []).length === 1 ? (LIN.find(l => l.k === p.chaves[0]) || {}).nome || "1 produto" : `${(p.chaves || []).length} produtos escolhidos`;
+  if (p.alvo === "modelo") { const m = CEL.find(m => m.slug === p.chave); return "Todas as variações do " + (m ? m.marca + " " + m.nome : p.chave); }
+  if (p.alvo === "condicao") return "Celulares " + (ROT_COND[p.chave] || p.chave);
+  if (p.alvo.startsWith("tudo")) return ROT_ALVO[p.alvo];
+  return ROT_ALVO[p.alvo] + ": " + p.chave;
+}
+const descTexto = p => p.tipo === "pct" ? `${p.valor}% off` : p.tipo === "reais" ? `${brl(p.valor)} off` : `por ${brl(p.valor)}`;
+const afetados = p => LIN.filter(l => promoDe(l, [{ ...p, ativo: true }]));
+function marcaSujo() { sujo = true; desenha(); }
+
+/* ---------- início ---------- */
+PC.quandoMudar(async () => {
+  if (!PC.usuario) return bloqueio("Entre com seu nome e PIN da Academia", `<button class="btn y" data-pc="entrar">Entrar</button>`);
+  if (!PC.pode("produtos")) return bloqueio("Sem acesso", `Seu usuário (${esc(PC.usuario.nome)}) ainda não tem acesso ao painel de produtos.<br><br><a href="../">Voltar para a loja</a>`);
+  if (O) return;
+  try {
+    const [a, c, o] = await Promise.all([fetch("../acessorios/dados.json", { cache: "no-store" }).then(r => r.json()), fetch("../dados-celulares.json", { cache: "no-store" }).then(r => r.json()).catch(() => ({ modelos: [] })), PC.chama("/api/loja/painel")]);
+    ACE = a.itens; CEL = c.modelos || []; O = o; LIN = linhas(); desenha();
+  } catch (e) { bloqueio("Não consegui carregar", esc(e.message)); }
+});
+function bloqueio(t, html) { $("app").innerHTML = `<div class="bloqueio"><h1>${t}</h1><p>${html}</p></div>`; }
+window.addEventListener("beforeunload", e => { if (sujo) { e.preventDefault(); e.returnValue = ""; } });
+
+async function salvar() {
+  try { O = { ...O, ...(await PC.chama("/api/loja/ofertas", { method: "PUT", body: JSON.stringify(O) })) }; sujo = false; toast("Salvo · já está valendo na loja"); desenha(); }
+  catch (e) { toast(e.message, true); }
+}
+
+/* ---------- desenho ---------- */
+function desenha() {
+  if (!O) return;
+  const nP = O.promos.length, nC = O.combos.length;
+  const y = window.scrollY;
+  $("app").innerHTML = `<header><div class="w"><div class="top"><h1>Painel de <i>produtos</i></h1>
+      <span class="quem">${esc(PC.usuario.nome)}</span><a class="btn s" href="../acessorios/" target="_blank">Ver acessórios</a><a class="btn s" href="../" target="_blank">Ver celulares</a></div>
+    <nav class="abas">${[["produtos", "Produtos", LIN.length], ["promos", "Promoções", nP], ["combos", "Combos", nC], ...(PC.pode("permissoes") ? [["acesso", "Acesso da equipe", ""]] : []), ["hist", "Histórico", ""]]
+      .map(([k, t, n]) => `<button data-aba="${k}" class="${aba === k ? "on" : ""}">${t}${n !== "" ? `<b>${n}</b>` : ""}</button>`).join("")}</nav></div></header>
+  <main class="w" id="corpo"></main>
+  <div class="salvar ${sujo ? "on" : ""}"><button class="btn y" data-acao="salvar">Salvar alterações</button></div>`;
+  ({ produtos: abaProdutos, promos: abaPromos, combos: abaCombos, acesso: abaAcesso, hist: abaHist })[aba]();
+  window.scrollTo(0, y);
+}
+
+function abaProdutos() {
+  const base = LIN.filter(l => l.t === tipo);
+  const cats = {}; base.forEach(l => cats[l.cat] = (cats[l.cat] || 0) + 1);
+  const t = sa(busca), oc = new Set(O.ocultos), de = new Set(O.destaques);
+  let L = base.filter(l => (!filtro || l.cat === filtro) && (!t || sa(l.nome + " " + l.sub + " " + (l.cod || "")).includes(t)));
+  if (mostrar === "promo") L = L.filter(l => promoDe(l)); if (mostrar === "oculto") L = L.filter(l => oc.has(l.oc)); if (mostrar === "destaque") L = L.filter(l => de.has(l.oc));
+  const vis = L.slice(0, 400), todosSel = vis.length && vis.every(l => sel.has(l.k));
+  $("corpo").innerHTML = `
+  <div class="linha"><div class="seg">${[["ace", "Acessórios"], ["cel", "Celulares"]].map(([k, n]) => `<button data-tipo="${k}" class="${tipo === k ? "on" : ""}">${n}</button>`).join("")}</div>
+    <input id="busca" placeholder="Buscar nome, código, grupo…" value="${esc(busca)}" style="flex:1;min-width:200px">
+    <select id="mostrar">${[["todos", "Todos"], ["promo", "Em promoção"], ["destaque", "Em destaque"], ["oculto", "Ocultos"]].map(([k, n]) => `<option value="${k}" ${mostrar === k ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+  <div class="chips"><button class="chip ${filtro ? "" : "on"}" data-cat="">Tudo<small>${base.length}</small></button>${Object.keys(cats).sort((a, b) => cats[b] - cats[a]).map(c => `<button class="chip ${filtro === c ? "on" : ""}" data-cat="${esc(c)}">${esc(c)}<small>${cats[c]}</small></button>`).join("")}</div>
+  ${filtro ? `<div class="cartao linha" style="justify-content:space-between"><div><h3>${esc(filtro)}</h3><div class="sub">${cats[filtro]} produtos${tipo === "cel" ? " (todas as variações)" : ""}</div></div>
+    <button class="btn y" data-acao="promo-cat">Promoção na ${tipo === "cel" ? "marca" : "categoria"} inteira</button></div>` : ""}
+  ${tipo === "cel" ? `<div class="sub" style="color:var(--mut);font-size:13px;margin-bottom:6px">Dica: em "Promoções › Nova" dá para pegar todas as variações de um modelo ou todos os de vitrine de uma vez.</div>` : ""}
+  <table><thead><tr><th style="width:30px"><input type="checkbox" id="selTodos" ${todosSel ? "checked" : ""}></th><th></th><th>Produto</th><th class="num">Preço</th><th class="num">Na loja</th><th class="oc"></th></tr></thead>
+  <tbody>${vis.map(l => { const x = promoDe(l);
+    return `<tr data-k="${esc(l.k)}" class="${sel.has(l.k) ? "sel" : ""}"><td><input type="checkbox" ${sel.has(l.k) ? "checked" : ""}></td>
+      <td class="f">${l.foto ? `<img src="${esc(l.foto)}" loading="lazy" alt="">` : ""}</td>
+      <td class="n"><b>${esc(l.nome)}</b><small>${esc(l.sub)}${l.cod ? " · " + esc(l.cod) : ""}</small></td>
+      <td class="num">${brl(l.preco)}</td>
+      <td class="num">${x ? `<span class="de">${brl(l.preco)}</span><span class="por">${brl(x.preco)}</span>` : "—"}</td>
+      <td class="oc">${x ? `<span class="tag p">${esc(x.p.selo || descTexto(x.p))}</span>` : ""}${de.has(l.oc) ? `<span class="tag d">destaque</span>` : ""}${oc.has(l.oc) ? `<span class="tag o">oculto</span>` : ""}</td></tr>`; }).join("")}</tbody></table>
+  ${L.length > vis.length ? `<div class="vazio">Mostrando 400 de ${L.length}. Use a busca ou uma categoria.</div>` : ""}${!L.length ? `<div class="vazio">Nada encontrado.</div>` : ""}
+  <div class="barra ${sel.size ? "on" : ""}"><div class="w"><b>${sel.size} selecionado${sel.size === 1 ? "" : "s"}</b>
+    <button class="btn y" data-acao="promo-sel">Promoção</button><button class="btn" data-acao="combo-sel">Criar combo</button>
+    <button class="btn" data-acao="dest">Destacar</button><button class="btn" data-acao="ocultar">Ocultar</button><button class="btn" data-acao="mostrar">Mostrar</button>
+    <button class="btn s" data-acao="limpa-sel">Limpar</button></div></div>`;
+  const b = $("busca"); b.oninput = () => { busca = b.value; const p = b.selectionStart; abaProdutos(); const n = $("busca"); n.focus(); n.setSelectionRange(p, p); };
+  $("mostrar").onchange = e => { mostrar = e.target.value; abaProdutos(); };
+  $("selTodos").onchange = e => { vis.forEach(l => e.target.checked ? sel.add(l.k) : sel.delete(l.k)); abaProdutos(); };
+}
+
+function abaPromos() {
+  const ord = [...O.promos].sort((a, b) => (valendo(b) - valendo(a)));
+  $("corpo").innerHTML = `<div class="linha" style="justify-content:space-between;margin-bottom:12px"><div style="color:var(--mut);font-size:14px">Quando um produto cai em mais de uma promoção, vale o menor preço. Preço final arredonda para ,99 (acessório) e 49,99/99,99 (celular).</div>
+    <button class="btn y" data-acao="nova-promo">Nova promoção</button></div>
+  ${ord.length ? `<div class="grid2">${ord.map(p => { const n = afetados(p).length, ok = valendo(p);
+    return `<div class="cartao ${ok ? "" : "desliga"}"><div class="linha" style="justify-content:space-between;align-items:flex-start">
+      <div><h3>${esc(p.nome || descTexto(p))}</h3><div class="sub">${esc(alvoTexto(p))}</div></div><span class="tag p">${esc(p.selo || descTexto(p))}</span></div>
+      <div class="sub" style="margin:8px 0">${n} produto${n === 1 ? "" : "s"} · ${p.inicio || p.fim ? `${p.inicio ? "de " + p.inicio.split("-").reverse().join("/") : ""} ${p.fim ? "até " + p.fim.split("-").reverse().join("/") : ""}` : "sem data para acabar"}${!ok ? (p.ativo === false ? " · pausada" : " · fora da data") : ""}</div>
+      <div class="linha"><button class="btn s" data-ed-promo="${p.id}">Editar</button><button class="btn s" data-pausa="${p.id}">${p.ativo === false ? "Ativar" : "Pausar"}</button><button class="btn s r" data-del-promo="${p.id}">Apagar</button></div></div>`; }).join("")}</div>`
+    : `<div class="vazio">Nenhuma promoção ainda. Em <b>Produtos</b> marque itens ou escolha uma categoria e toque em Promoção.</div>`}`;
+}
+
+function abaCombos() {
+  $("corpo").innerHTML = `<div class="linha" style="justify-content:space-between;margin-bottom:12px"><div style="color:var(--mut);font-size:14px">Combos aparecem primeiro na loja de acessórios, na categoria Combos. Se um acessório do combo sair da loja, o combo some sozinho.</div>
+    <button class="btn y" data-acao="novo-combo">Novo combo</button></div>
+  ${O.combos.length ? `<div class="grid2">${O.combos.map(c => { const soma = somaCombo(c);
+    return `<div class="cartao ${valendo(c) ? "" : "desliga"}"><h3>${esc(c.nome)}</h3><div class="sub">${c.itens.map(i => `${i.qtd > 1 ? i.qtd + "× " : ""}${esc(i.nome)}`).join(" + ")}</div>
+      <div style="margin:8px 0"><span class="de" style="display:inline">${brl(soma)}</span> <span class="por">${brl(c.preco)}</span> <span class="sub">${soma > c.preco ? `(${Math.round((1 - c.preco / soma) * 100)}% off)` : ""}</span></div>
+      <div class="linha"><button class="btn s" data-ed-combo="${c.id}">Editar</button><button class="btn s" data-pausa-combo="${c.id}">${c.ativo === false ? "Ativar" : "Pausar"}</button><button class="btn s r" data-del-combo="${c.id}">Apagar</button></div></div>`; }).join("")}</div>`
+    : `<div class="vazio">Nenhum combo ainda. Em <b>Produtos</b> marque 2 ou mais itens e toque em Criar combo.</div>`}`;
+}
+const precoAtual = k => { const l = LIN.find(l => l.k === k); return l ? l.preco : null; };
+const somaCombo = c => c.itens.reduce((s, i) => s + (precoAtual(i.chave) ?? i.preco ?? 0) * i.qtd, 0);
+
+let PERM = null;
+async function abaAcesso() {
+  $("corpo").innerHTML = `<div class="vazio">Carregando…</div>`;
+  try { PERM = PERM || await PC.chama("/api/loja/permissoes"); } catch (e) { $("corpo").innerHTML = `<div class="vazio">${esc(e.message)}</div>`; return; }
+  const papeis = [["colaborador", "Vendedores"], ["gestor", "Gerentes"], ["admin", "Administradores"]];
+  $("corpo").innerHTML = `<p style="color:var(--mut);font-size:14px;margin-top:0">O login da loja é o mesmo da Academia. Cliente comum não vê nada disto. Marque por cargo inteiro ou só pessoas específicas.</p>
+  ${Object.entries(PERM.funcoes).map(([f, nome]) => { const p = PERM.permissoes[f];
+    return `<div class="cartao" data-f="${f}"><h3>${esc(nome)}</h3>
+      <div class="linha" style="margin:10px 0">${papeis.map(([k, n]) => `<label class="chip ${p.papeis.includes(k) ? "on" : ""}"><input type="checkbox" hidden data-papel="${k}" ${p.papeis.includes(k) ? "checked" : ""}>${n}</label>`).join("")}</div>
+      <div class="linha">${PERM.pessoas.map(x => `<label class="chip ${p.pessoas.includes(x.id) ? "on" : ""}"><input type="checkbox" hidden data-pessoa="${x.id}" ${p.pessoas.includes(x.id) ? "checked" : ""} ${f === "permissoes" && x.id === PERM.gustavo ? "disabled" : ""}>${esc(x.nome)}<small>${esc(x.loja || "")}</small></label>`).join("")}</div></div>`; }).join("")}
+  <div class="linha" style="justify-content:flex-end"><button class="btn y" data-acao="salvar-acesso">Salvar acesso</button></div>`;
+  $("corpo").onchange = e => { const i = e.target; if (i.type === "checkbox") i.closest("label").classList.toggle("on", i.checked); };
+}
+function abaHist() {
+  $("corpo").innerHTML = `<p style="color:var(--mut);font-size:14px;margin-top:0">Cada vez que salva, a versão anterior fica guardada aqui (30 últimas).</p>
+  ${(O.versoes || []).length ? O.versoes.map(v => `<div class="cartao linha" style="justify-content:space-between"><div><b>${v.quando ? new Date(v.quando).toLocaleString("pt-BR") : "versão inicial"}</b><div class="sub">${esc(v.por || "")} · ${v.promos} promoções · ${v.combos} combos</div></div>
+    <button class="btn s" data-volta="${v.i}">Voltar para esta</button></div>`).join("") : `<div class="vazio">Nada salvo ainda.</div>`}`;
+}
+
+/* ---------- janelas ---------- */
+function janela(html) {
+  let m = $("mod"); if (!m) { m = document.createElement("div"); m.id = "mod"; m.className = "mod"; document.body.appendChild(m); m.onclick = e => { if (e.target === m) fechaJanela(); }; }
+  m.innerHTML = `<div class="cx">${html}</div>`; m.classList.add("on"); return m;
+}
+const fechaJanela = () => $("mod") && $("mod").classList.remove("on");
+
+function opcoesAlvo(alvo) {
+  const cont = f => { const c = {}; f.forEach(x => c[x] = (c[x] || 0) + 1); return Object.entries(c).sort((a, b) => b[1] - a[1]); };
+  if (alvo === "categoria") return cont(ACE.map(i => i.cat));
+  if (alvo === "grupo") return cont(ACE.map(i => i.g));
+  if (alvo === "marca") return cont(CEL.map(m => m.marca));
+  if (alvo === "modelo") return CEL.map(m => [m.slug, m.variantes.length, m.marca + " " + m.nome]).sort((a, b) => a[2].localeCompare(b[2]));
+  if (alvo === "condicao") return cont(CEL.flatMap(m => m.variantes.map(v => v.condicao))).map(([k, n]) => [k, n, ROT_COND[k] || k]);
+  return [];
+}
+function editarPromo(p) {
+  const nova = !O.promos.find(x => x.id === p.id);
+  const m = janela(`<h2>${nova ? "Nova promoção" : "Editar promoção"}</h2><div class="sub">Vale na hora em que você salvar. Sem data de fim, fica até você pausar.</div>
+    <div class="campo"><span>Em quê</span><select id="pAlvo">${Object.entries(ROT_ALVO).filter(([k]) => k !== "itens" || p.alvo === "itens").map(([k, n]) => `<option value="${k}" ${p.alvo === k ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+    <div class="campo" id="pChaveC"><span>Qual</span><select id="pChave"></select></div>
+    <div class="linha"><div class="campo" style="flex:1"><span>Desconto</span><select id="pTipo"><option value="pct">% de desconto</option><option value="reais">R$ de desconto</option><option value="preco">Preço fixo</option></select></div>
+      <div class="campo" style="flex:1"><span>Valor</span><input id="pValor" type="number" step="0.01" min="0" value="${p.valor || ""}" placeholder="10"></div></div>
+    <div class="linha"><div class="campo" style="flex:1"><span>Começa</span><input id="pIni" type="date" value="${p.inicio || ""}"></div><div class="campo" style="flex:1"><span>Termina</span><input id="pFim" type="date" value="${p.fim || ""}"></div></div>
+    <div class="linha"><div class="campo" style="flex:2"><span>Nome (só para você)</span><input id="pNome" value="${esc(p.nome || "")}" placeholder="Black Friday fones"></div><div class="campo" style="flex:1"><span>Selo no site</span><input id="pSelo" maxlength="20" value="${esc(p.selo || "")}" placeholder="automático: -10%"></div></div>
+    <div class="campo"><span>Prévia</span><div class="previa" id="pPrev"></div></div>
+    <div class="rodape">${nova ? "" : `<button class="btn r" data-del-promo="${p.id}">Apagar</button>`}<button class="btn" data-fecha>Cancelar</button><button class="btn y" id="pOk">${nova ? "Criar promoção" : "Aplicar"}</button></div>`);
+  $("pTipo").value = p.tipo || "pct";
+  const ler = () => ({ ...p, alvo: $("pAlvo").value, chave: $("pChave").value, tipo: $("pTipo").value, valor: Number($("pValor").value), inicio: $("pIni").value, fim: $("pFim").value, nome: $("pNome").value.trim(), selo: $("pSelo").value.trim() });
+  const chaves = () => { const a = $("pAlvo").value, ops = opcoesAlvo(a); $("pChaveC").hidden = !ops.length;
+    $("pChave").innerHTML = ops.map(([k, n, rot]) => `<option value="${esc(k)}" ${p.chave === k ? "selected" : ""}>${esc(rot || k)} (${n})</option>`).join(""); };
+  const prev = () => { const q = ler(); if (!q.valor) { $("pPrev").innerHTML = "Digite o valor do desconto."; return; }
+    const L = afetados(q); $("pPrev").innerHTML = `<b>${L.length} produto${L.length === 1 ? "" : "s"}</b>` + L.slice(0, 60).map(l => { const x = promoDe(l, [{ ...q, ativo: true }]);
+      return `<div><span>${esc(l.nome)}</span><span><span class="de" style="display:inline">${brl(l.preco)}</span> <b class="por">${brl(x.preco)}</b></span></div>`; }).join("") + (L.length > 60 ? `<div>… e mais ${L.length - 60}</div>` : ""); };
+  chaves(); prev();
+  $("pAlvo").onchange = () => { chaves(); prev(); }; m.oninput = prev; m.onchange = prev;
+  $("pOk").onclick = () => { const q = ler();
+    if (!q.valor) return toast("Digite o valor", true);
+    if (q.tipo === "pct" && q.valor >= 90) return toast("Desconto em % deve ser menor que 90", true);
+    if (!afetados(q).length) return toast("Nenhum produto ficaria mais barato com isso", true);
+    O.promos = O.promos.filter(x => x.id !== q.id).concat(q); fechaJanela(); aba = "promos"; marcaSujo(); toast("Promoção pronta. Falta salvar."); };
+}
+function editarCombo(c) {
+  const nova = !O.combos.find(x => x.id === c.id); c = JSON.parse(JSON.stringify(c));
+  const m = janela(`<h2>${nova ? "Novo combo" : "Editar combo"}</h2><div class="sub">O cliente vê o preço somado riscado e o preço do combo.</div>
+    <div class="campo"><span>Nome no site</span><input id="cNome" value="${esc(c.nome || "")}" placeholder="Kit carregamento rápido"></div>
+    <div class="campo" style="position:relative"><span>Produtos</span><input id="cBusca" placeholder="Buscar para adicionar…"><div class="res" id="cRes" hidden></div><div class="citens" id="cItens"></div></div>
+    <div class="linha"><div class="campo" style="flex:1"><span>Preço do combo</span><input id="cPreco" type="number" step="0.01" value="${c.preco || ""}"></div><div class="campo" style="flex:2"><span>Sugestões</span><div class="linha" id="cSug"></div></div></div>
+    <div class="campo"><span>Descrição (opcional)</span><input id="cDesc" value="${esc(c.descricao || "")}" placeholder="Leve junto e pague menos."></div>
+    <div class="linha"><div class="campo" style="flex:1"><span>Começa</span><input id="cIni" type="date" value="${c.inicio || ""}"></div><div class="campo" style="flex:1"><span>Termina</span><input id="cFim" type="date" value="${c.fim || ""}"></div></div>
+    <div class="rodape">${nova ? "" : `<button class="btn r" data-del-combo="${c.id}">Apagar</button>`}<button class="btn" data-fecha>Cancelar</button><button class="btn y" id="cOk">${nova ? "Criar combo" : "Aplicar"}</button></div>`);
+  const itens = () => { const soma = somaCombo(c);
+    $("cItens").innerHTML = c.itens.map((i, n) => `<div><img src="${esc(i.foto ? (i.foto.startsWith("/") ? ".." + i.foto : i.foto) : "../logo.png")}" alt=""><span>${esc(i.nome)}<br><small style="color:var(--mut)">${brl(precoAtual(i.chave) ?? i.preco ?? 0)}</small></span>
+      <input type="number" min="1" max="20" value="${i.qtd}" data-q="${n}"><button class="btn s r" data-tira="${n}">×</button></div>`).join("") + `<div style="justify-content:flex-end;border:0"><span class="sub" style="flex:0">Soma normal: <b>${brl(soma)}</b></span></div>`;
+    const fim = v => +(Math.ceil(v + 0.01) - 0.01).toFixed(2);
+    $("cSug").innerHTML = soma ? [5, 10, 15, 20].map(p => `<button class="btn s" data-sug="${fim(soma * (1 - p / 100))}">-${p}% · ${brl(fim(soma * (1 - p / 100)))}</button>`).join("") : ""; };
+  itens();
+  $("cBusca").oninput = e => { const t = sa(e.target.value); const R = t.length < 2 ? [] : LIN.filter(l => sa(l.nome + " " + (l.cod || "")).includes(t)).slice(0, 30);
+    $("cRes").hidden = !R.length; $("cRes").innerHTML = R.map(l => `<div data-add="${esc(l.k)}"><span>${esc(l.nome)}</span><b>${brl(l.preco)}</b></div>`).join(""); };
+  m.onclick = e => {
+    const a = e.target.closest("[data-add]"); if (a) { const l = LIN.find(x => x.k === a.dataset.add); c.itens.push({ chave: l.k, nome: l.nome, qtd: 1, foto: l.fotoAbs, preco: l.preco }); $("cBusca").value = ""; $("cRes").hidden = true; itens(); return; }
+    const t = e.target.closest("[data-tira]"); if (t) { c.itens.splice(+t.dataset.tira, 1); itens(); return; }
+    const s = e.target.closest("[data-sug]"); if (s) $("cPreco").value = s.dataset.sug;
+    if (e.target === m) fechaJanela();
+  };
+  m.oninput = e => { if (e.target.dataset.q !== undefined) { c.itens[+e.target.dataset.q].qtd = Math.max(1, +e.target.value || 1); itens(); } };
+  $("cOk").onclick = () => {
+    Object.assign(c, { nome: $("cNome").value.trim(), preco: Number($("cPreco").value), descricao: $("cDesc").value.trim(), inicio: $("cIni").value, fim: $("cFim").value });
+    if (!c.nome) return toast("Dê um nome ao combo", true); if (c.itens.length < 2) return toast("Combo precisa de 2 produtos ou mais", true); if (!c.preco) return toast("Defina o preço do combo", true);
+    c.itens.forEach(i => { const p = precoAtual(i.chave); if (p) i.preco = p; });
+    O.combos = O.combos.filter(x => x.id !== c.id).concat(c); fechaJanela(); aba = "combos"; marcaSujo(); toast("Combo pronto. Falta salvar."); };
+}
+
+/* ---------- cliques ---------- */
+document.addEventListener("click", async e => {
+  if (!O) return;
+  const d = (s) => e.target.closest(s);
+  let b;
+  if (d("[data-fecha]")) return fechaJanela();
+  if ((b = d("[data-aba]"))) { aba = b.dataset.aba; return desenha(); }
+  if ((b = d("[data-tipo]"))) { tipo = b.dataset.tipo; filtro = ""; sel.clear(); return desenha(); }
+  if ((b = d("[data-cat]"))) { filtro = b.dataset.cat; return abaProdutos(); }
+  if ((b = d("tbody tr[data-k]")) && e.target.type !== "checkbox") { const k = b.dataset.k; sel.has(k) ? sel.delete(k) : sel.add(k); return abaProdutos(); }
+  if ((b = d("[data-ed-promo]"))) return editarPromo(O.promos.find(p => p.id === b.dataset.edPromo));
+  if ((b = d("[data-pausa]"))) { const p = O.promos.find(p => p.id === b.dataset.pausa); p.ativo = p.ativo === false; return marcaSujo(); }
+  if ((b = d("[data-del-promo]"))) { if (!confirm("Apagar esta promoção?")) return; O.promos = O.promos.filter(p => p.id !== b.dataset.delPromo); fechaJanela(); return marcaSujo(); }
+  if ((b = d("[data-ed-combo]"))) return editarCombo(O.combos.find(c => c.id === b.dataset.edCombo));
+  if ((b = d("[data-pausa-combo]"))) { const c = O.combos.find(c => c.id === b.dataset.pausaCombo); c.ativo = c.ativo === false; return marcaSujo(); }
+  if ((b = d("[data-del-combo]"))) { if (!confirm("Apagar este combo?")) return; O.combos = O.combos.filter(c => c.id !== b.dataset.delCombo); fechaJanela(); return marcaSujo(); }
+  if ((b = d("[data-volta]"))) { if (sujo && !confirm("Há alterações não salvas. Descartar?")) return; if (!confirm("Voltar as promoções e combos para esta versão? Vale na hora.")) return;
+    try { await PC.chama("/api/loja/desfazer/" + b.dataset.volta, { method: "POST" }); O = await PC.chama("/api/loja/painel"); sujo = false; toast("Versão restaurada"); desenha(); } catch (x) { toast(x.message, true); } return; }
+  if (!(b = d("[data-acao]"))) return;
+  const ac = b.dataset.acao, ks = [...sel], Ls = LIN.filter(l => sel.has(l.k));
+  if (ac === "salvar") return salvar();
+  if (ac === "limpa-sel") { sel.clear(); return abaProdutos(); }
+  if (ac === "nova-promo") return editarPromo({ id: novoId(), alvo: "categoria", tipo: "pct", ativo: true });
+  if (ac === "promo-cat") return editarPromo({ id: novoId(), alvo: tipo === "cel" ? "marca" : "categoria", chave: filtro, tipo: "pct", ativo: true });
+  if (ac === "promo-sel") return editarPromo({ id: novoId(), alvo: "itens", chaves: ks, tipo: "pct", ativo: true });
+  if (ac === "novo-combo") return editarCombo({ id: novoId(), itens: [], ativo: true });
+  if (ac === "combo-sel") return editarCombo({ id: novoId(), itens: Ls.map(l => ({ chave: l.k, nome: l.nome, qtd: 1, foto: l.fotoAbs, preco: l.preco })), ativo: true });
+  const ocs = [...new Set(Ls.map(l => l.oc))];
+  if (ac === "ocultar") { O.ocultos = [...new Set([...O.ocultos, ...ocs])]; if (tipo === "cel") toast("No celular, ocultar esconde o modelo inteiro"); sel.clear(); return marcaSujo(); }
+  if (ac === "mostrar") { O.ocultos = O.ocultos.filter(x => !ocs.includes(x)); sel.clear(); return marcaSujo(); }
+  if (ac === "dest") { const ja = ocs.every(x => O.destaques.includes(x)); O.destaques = ja ? O.destaques.filter(x => !ocs.includes(x)) : [...new Set([...O.destaques, ...ocs])]; toast(ja ? "Tirado do destaque" : "Em destaque"); sel.clear(); return marcaSujo(); }
+  if (ac === "salvar-acesso") {
+    const novo = {}; document.querySelectorAll("[data-f]").forEach(c => { novo[c.dataset.f] = { papeis: [...c.querySelectorAll("[data-papel]:checked")].map(i => i.dataset.papel), pessoas: [...c.querySelectorAll("[data-pessoa]:checked")].map(i => +i.dataset.pessoa) }; });
+    try { PERM.permissoes = (await PC.chama("/api/loja/permissoes", { method: "PUT", body: JSON.stringify({ permissoes: novo }) })).permissoes; toast("Acesso salvo"); } catch (x) { toast(x.message, true); }
+  }
+});
+document.addEventListener("change", e => { if (e.target.closest("tbody tr[data-k]") && e.target.type === "checkbox") { const k = e.target.closest("tr").dataset.k; e.target.checked ? sel.add(k) : sel.delete(k); abaProdutos(); } });
+</script>
+</body>
+</html>
