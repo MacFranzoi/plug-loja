@@ -101,6 +101,19 @@
   function barra() {
     let el = document.querySelector(".pc-eq");
     if (!el) { const s = document.createElement("style"); s.textContent = css; document.head.appendChild(s); el = document.createElement("div"); el.className = "pc-eq"; }
+    const raizT = location.pathname.includes("/acessorios/") || location.pathname.includes("/p/") || location.pathname.includes("/painel/") ? "../" : "";
+    // página com espaço no cabeçalho (#pcTopo): o login fica lá, visível
+    const topo = document.getElementById("pcTopo");
+    if (topo) {
+      el.remove();
+      const ICO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`;
+      topo.innerHTML = !PC.usuario
+        ? `<button class="conta" data-pc="entrar" title="Área da equipe">${ICO}<span>Entrar</span></button>`
+        : `<details class="conta-m"><summary class="conta">${ICO}<span>${PC.usuario.nome.split(" ")[0]}</span></summary><div class="conta-l">`
+          + (PC.funcoes.includes("produtos") ? `<a href="${raizT}painel/">Painel de produtos</a>` : "")
+          + `<button data-pc="sair">Sair</button></div></details>`;
+      return;
+    }
     // sem login: link discreto no rodapé; logado: botões flutuando acima do carrinho
     const pe = document.querySelector("footer .w, footer .wrap, footer") || document.body;
     if (PC.usuario) { el.classList.remove("pc-pe"); document.body.appendChild(el); } else { el.classList.add("pc-pe"); pe.appendChild(el); }
