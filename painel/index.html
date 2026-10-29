@@ -136,7 +136,12 @@ function marcaSujo() { sujo = true; desenha(); }
 /* ---------- início ---------- */
 PC.quandoMudar(async () => {
   if (!PC.usuario) return bloqueio("Entre com seu nome e PIN da Academia", `<button class="btn y" data-pc="entrar">Entrar</button>`);
-  if (!PC.pode("produtos")) return bloqueio("Sem acesso", `Seu usuário (${esc(PC.usuario.nome)}) ainda não tem acesso ao painel de produtos.<br><br><a href="../">Voltar para a loja</a>`);
+  if (!PC.pode("produtos")) {
+    // quem só cuida das fotos entra direto na aba Fotos
+    if (!PC.pode("fotos")) return bloqueio("Sem acesso", `Seu usuário (${esc(PC.usuario.nome)}) ainda não tem acesso ao painel de produtos.<br><br><a href="../">Voltar para a loja</a>`);
+    if (!O) { O = { promos: [], combos: [], destaques: [], ocultos: [] }; LIN = []; aba = "fotos"; desenha(); }
+    return;
+  }
   if (O) return;
   try {
     const [a, c, o] = await Promise.all([fetch("../acessorios/dados.json", { cache: "no-store" }).then(r => r.json()), fetch("../dados-celulares.json", { cache: "no-store" }).then(r => r.json()).catch(() => ({ modelos: [] })), PC.chama("/api/loja/painel")]);
@@ -158,11 +163,11 @@ function desenha() {
   const y = window.scrollY;
   $("app").innerHTML = `<header><div class="w"><div class="top"><h1>Painel de <i>produtos</i></h1>
       <span class="quem">${esc(PC.usuario.nome)}</span><a class="btn s" href="../acessorios/" target="_blank">Ver acessórios</a><a class="btn s" href="../" target="_blank">Ver celulares</a></div>
-    <nav class="abas">${[["produtos", "Produtos", LIN.length], ["promos", "Promoções", nP], ["combos", "Combos", nC], ...(PC.pode("lojas") ? [["lojas", "Lojas", ""]] : []), ...(PC.pode("permissoes") ? [["acesso", "Acesso da equipe", ""]] : []), ["hist", "Histórico", ""]]
+    <nav class="abas">${[...(PC.pode("produtos") ? [["produtos", "Produtos", LIN.length], ["promos", "Promoções", nP], ["combos", "Combos", nC]] : []), ...(PC.pode("fotos") ? [["fotos", "Fotos", ""]] : []), ...(PC.pode("lojas") ? [["lojas", "Lojas", ""]] : []), ...(PC.pode("permissoes") ? [["acesso", "Acesso da equipe", ""]] : []), ...(PC.pode("produtos") ? [["hist", "Histórico", ""]] : [])]
       .map(([k, t, n]) => `<button data-aba="${k}" class="${aba === k ? "on" : ""}">${t}${n !== "" ? `<b>${n}</b>` : ""}</button>`).join("")}</nav></div></header>
   <main class="w" id="corpo"></main>
   <div class="salvar ${sujo ? "on" : ""}"><button class="btn y" data-acao="salvar">Salvar alterações</button></div>`;
-  ({ produtos: abaProdutos, promos: abaPromos, combos: abaCombos, acesso: abaAcesso, lojas: abaLojas, hist: abaHist })[aba]();
+  ({ produtos: abaProdutos, promos: abaPromos, combos: abaCombos, fotos: abaFotos, acesso: abaAcesso, lojas: abaLojas, hist: abaHist })[aba]();
   window.scrollTo(0, y);
 }
 
@@ -223,6 +228,13 @@ function abaCombos() {
 const precoAtual = k => { const l = LIN.find(l => l.k === k); return l ? l.preco : null; };
 const somaCombo = c => c.itens.reduce((s, i) => s + (precoAtual(i.chave) ?? i.preco ?? 0) * i.qtd, 0);
 
+// painel de fotos e garantias (roda na VPS; a Academia confere o login e repassa)
+function abaFotos() {
+  const url = PC.api + "/fotos/";
+  $("corpo").innerHTML = `<div class="sub" style="margin:4px 0 10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">Escolha a foto de cada acessório e a garantia. Vale no site na próxima atualização (todo dia às 9h).
+    <a class="btn s" href="${url}" target="_blank">Abrir em tela cheia</a></div>
+    <iframe src="${url}" title="Fotos dos acessórios" style="width:100%;height:calc(100vh - 190px);min-height:480px;border:1px solid #2a2a2a;border-radius:12px;background:#0c0c0d"></iframe>`;
+}
 function abaLojas() {
   const cfg = (PC.ofertas && PC.ofertas.lojas) || { zerados: "mostrar", lojas: {} };
   const nomes = { centro: "Centro", plaza: "Plaza", miller: "Miller" };
