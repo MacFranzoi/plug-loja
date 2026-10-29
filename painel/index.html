@@ -102,14 +102,15 @@ const novoId = () => Math.random().toString(36).slice(2, 10);
 let toastT; function toast(t, err) { const e = $("toast"); e.textContent = t; e.className = "toast on" + (err ? " err" : ""); clearTimeout(toastT); toastT = setTimeout(() => e.className = "toast", 2600); }
 
 /* ---------- estado ---------- */
-let ACE = [], CEL = [], O = null, sujo = false, aba = "produtos", tipo = "ace", filtro = "", busca = "", sel = new Set(), mostrar = "todos";
+let ACE = [], CEL = [], O = null, sujo = false, aba = (location.hash.slice(1) || "produtos"), tipo = "ace", filtro = "", busca = "", sel = new Set(), mostrar = "todos";
 const ROT_ALVO = { itens: "Produtos escolhidos", categoria: "Categoria de acessório", grupo: "Grupo da GestãoClick", tudo_acessorios: "Todos os acessórios",
   modelo: "Modelo de celular (todas as variações)", marca: "Marca de celular", condicao: "Celulares por condição", tudo_celulares: "Todos os celulares" };
 const ROT_COND = { novo: "Lacrado", vitrine: "Vitrine" };
 
 // lista única de produtos: acessórios e cada variação de celular
 function linhas() {
-  const a = ACE.map(it => ({ k: PC.kAce(it), t: "ace", it, nome: it.n, sub: it.cat + " · " + it.g, cat: it.cat, foto: "../acessorios/" + it.f, fotoAbs: "/acessorios/" + it.f, preco: it.p, cod: it.c, oc: "a:" + it.c + "|" + it.n }));
+  const ed = (O && O.edicoes) || {};
+  const a = ACE.map(it => ({ k: PC.kAce(it), t: "ace", it, ed: ed[PC.kAce(it)], nome: (ed[PC.kAce(it)] || {}).n || it.n, sub: it.cat + " · " + it.g, cat: it.cat, foto: "../acessorios/" + it.f, fotoAbs: "/acessorios/" + it.f, preco: (ed[PC.kAce(it)] || {}).p || it.p, cod: it.c, oc: "a:" + it.c + "|" + it.n }));
   const c = CEL.flatMap(m => m.variantes.map(v => ({ k: PC.kCel(m, v), t: "cel", m, v, nome: `${m.marca} ${m.nome} ${v.memoria}`, sub: `${ROT_COND[v.condicao] || v.condicao} · ${v.versao}`, cat: m.marca,
     foto: m.foto ? "../" + m.foto : "", fotoAbs: m.foto ? "/" + m.foto : "", preco: v.pix, oc: "m:" + m.slug })));
   return [...a, ...c];
@@ -136,6 +137,7 @@ function marcaSujo() { sujo = true; desenha(); }
 /* ---------- início ---------- */
 PC.quandoMudar(async () => {
   if (!PC.usuario) return bloqueio("Entre com seu nome e PIN da Academia", `<button class="btn y" data-pc="entrar">Entrar</button>`);
+  if (!PC.pode("produtos") && aba !== "fotos" && aba !== "lojas" && aba !== "acesso") aba = "fotos";
   if (!PC.pode("produtos")) {
     // quem só cuida das fotos entra direto na aba Fotos
     if (!PC.pode("fotos")) return bloqueio("Sem acesso", `Seu usuário (${esc(PC.usuario.nome)}) ainda não tem acesso ao painel de produtos.<br><br><a href="../">Voltar para a loja</a>`);
@@ -163,11 +165,12 @@ function desenha() {
   const y = window.scrollY;
   $("app").innerHTML = `<header><div class="w"><div class="top"><h1>Painel de <i>produtos</i></h1>
       <span class="quem">${esc(PC.usuario.nome)}</span><a class="btn s" href="../acessorios/" target="_blank">Ver acessórios</a><a class="btn s" href="../" target="_blank">Ver celulares</a></div>
-    <nav class="abas">${[...(PC.pode("produtos") ? [["produtos", "Produtos", LIN.length], ["promos", "Promoções", nP], ["combos", "Combos", nC]] : []), ...(PC.pode("fotos") ? [["fotos", "Fotos", ""]] : []), ...(PC.pode("lojas") ? [["lojas", "Lojas", ""]] : []), ...(PC.pode("permissoes") ? [["acesso", "Acesso da equipe", ""]] : []), ...(PC.pode("produtos") ? [["hist", "Histórico", ""]] : [])]
+    <nav class="abas">${[...(PC.pode("produtos") ? [["produtos", "Produtos", LIN.length], ["promos", "Promoções", nP], ["combos", "Combos", nC], ["site", "Personalizar o site", ""]] : []), ...(PC.pode("fotos") ? [["fotos", "Fotos", ""]] : []), ...(PC.pode("lojas") ? [["lojas", "Lojas", ""]] : []), ...(PC.pode("permissoes") ? [["acesso", "Acesso da equipe", ""]] : []), ...(PC.pode("produtos") ? [["hist", "Histórico", ""]] : [])]
       .map(([k, t, n]) => `<button data-aba="${k}" class="${aba === k ? "on" : ""}">${t}${n !== "" ? `<b>${n}</b>` : ""}</button>`).join("")}</nav></div></header>
   <main class="w" id="corpo"></main>
   <div class="salvar ${sujo ? "on" : ""}"><button class="btn y" data-acao="salvar">Salvar alterações</button></div>`;
-  ({ produtos: abaProdutos, promos: abaPromos, combos: abaCombos, fotos: abaFotos, acesso: abaAcesso, lojas: abaLojas, hist: abaHist })[aba]();
+  if (!document.querySelector(`[data-aba="${aba}"]`)) { aba = document.querySelector("[data-aba]")?.dataset.aba || "produtos"; return desenha(); }
+  ({ produtos: abaProdutos, promos: abaPromos, combos: abaCombos, fotos: abaFotos, site: abaSite, acesso: abaAcesso, lojas: abaLojas, hist: abaHist })[aba]();
   window.scrollTo(0, y);
 }
 
@@ -193,7 +196,7 @@ function abaProdutos() {
       <td class="n"><b>${esc(l.nome)}</b><small>${esc(l.sub)}${l.cod ? " · " + esc(l.cod) : ""}</small></td>
       <td class="num">${brl(l.preco)}</td>
       <td class="num">${x ? `<span class="de">${brl(l.preco)}</span><span class="por">${brl(x.preco)}</span>` : "—"}</td>
-      <td class="oc">${x ? `<span class="tag p">${esc(x.p.selo || descTexto(x.p))}</span>` : ""}${de.has(l.oc) ? `<span class="tag d">destaque</span>` : ""}${oc.has(l.oc) ? `<span class="tag o">oculto</span>` : ""}</td></tr>`; }).join("")}</tbody></table>
+      <td class="oc">${l.t === "ace" ? `<button class="btn s" data-editar="${esc(l.k)}" title="Editar nome, descrição e preço">Editar</button> ` : ""}${l.ed ? `<span class="tag d">editado</span>` : ""}${x ? `<span class="tag p">${esc(x.p.selo || descTexto(x.p))}</span>` : ""}${de.has(l.oc) ? `<span class="tag d">destaque</span>` : ""}${oc.has(l.oc) ? `<span class="tag o">oculto</span>` : ""}</td></tr>`; }).join("")}</tbody></table>
   ${L.length > vis.length ? `<div class="vazio">Mostrando 400 de ${L.length}. Use a busca ou uma categoria.</div>` : ""}${!L.length ? `<div class="vazio">Nada encontrado.</div>` : ""}
   <div class="barra ${sel.size ? "on" : ""}"><div class="w"><b>${sel.size} selecionado${sel.size === 1 ? "" : "s"}</b>
     <button class="btn y" data-acao="promo-sel">Promoção</button><button class="btn" data-acao="combo-sel">Criar combo</button>
@@ -235,6 +238,51 @@ function abaFotos() {
     <a class="btn s" href="${url}" target="_blank">Abrir em tela cheia</a></div>
     <iframe src="${url}" title="Fotos dos acessórios" style="width:100%;height:calc(100vh - 190px);min-height:480px;border:1px solid #2a2a2a;border-radius:12px;background:#0c0c0d"></iframe>`;
 }
+// ---------- editar produto (nome, descrição, preço) ----------
+function editarProduto(k) {
+  const l = LIN.find(x => x.k === k); if (!l) return; const it = l.it, e = (O.edicoes = O.edicoes || {})[k] || {};
+  const m = janela(`<h2>Editar produto</h2><div class="sub">Vale só no site. O cadastro na GestãoClick não muda. Campo vazio = usa o original.</div>
+    <div class="campo"><span>Nome no site</span><input id="eN" value="${esc(e.n || "")}" placeholder="${esc(it.n)}"></div>
+    <div class="campo"><span>Descrição curta</span><textarea id="eR" rows="4" style="width:100%;box-sizing:border-box;background:#0c0c0d;border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:inherit;font:inherit" placeholder="${esc(it.r || "Sem descrição")}">${esc(e.r || "")}</textarea></div>
+    <div class="campo"><span>Preço (original ${brl(it.p)})</span><input id="eP" type="number" step="0.01" min="0" value="${e.p || ""}" placeholder="${it.p}"></div>
+    <div class="sub">Promoções continuam valendo por cima deste preço.</div>
+    <div class="rodape">${Object.keys(e).length ? `<button class="btn r" id="eVolta">Voltar ao original</button>` : ""}<button class="btn" data-fecha>Cancelar</button><button class="btn y" id="eOk">Aplicar</button></div>`);
+  const fim = () => { LIN = linhas(); fechaJanela(); marcaSujo(); toast("Produto editado. Falta salvar."); };
+  m.querySelector("#eOk").onclick = () => {
+    const n = m.querySelector("#eN").value.trim(), r = m.querySelector("#eR").value.trim(), p = Number(m.querySelector("#eP").value);
+    const x = {}; if (n && n !== it.n) x.n = n; if (r) x.r = r; if (p > 0 && p !== it.p) x.p = Math.round(p * 100) / 100;
+    if (Object.keys(x).length) O.edicoes[k] = x; else delete O.edicoes[k]; fim();
+  };
+  const v = m.querySelector("#eVolta"); if (v) v.onclick = () => { delete O.edicoes[k]; fim(); };
+}
+
+// ---------- personalizar o site (página de acessórios) ----------
+function abaSite() {
+  const S = O.site = { faixa: "", destaques_titulo: "", ordem: [], escondidos: [], qtd: 14, ...(O.site || {}) };
+  const cats = {}; ACE.forEach(i => cats[i.cat] = (cats[i.cat] || 0) + 1);
+  const todas = ["Destaques", "Combos", "Promoções", ...Object.keys(cats).sort((a, b) => cats[b] - cats[a])];
+  const ordem = [...S.ordem.filter(k => todas.includes(k)), ...todas.filter(k => !S.ordem.includes(k))];
+  const nota = { Destaques: "produtos marcados com Destacar", Combos: "combos ativos", "Promoções": "produtos em promoção" };
+  $("corpo").innerHTML = `<div class="grid2">
+    <div class="cartao"><h3>Topo</h3>
+      <div class="campo"><span>Frase da faixa do topo</span><input id="sFaixa" maxlength="180" value="${esc(S.faixa)}" placeholder="Monte o carrinho, envie pelo WhatsApp e retire na loja Plug."></div>
+      <div class="campo"><span>Título do carrossel de destaques</span><input id="sDest" maxlength="40" value="${esc(S.destaques_titulo)}" placeholder="Destaques"></div>
+      <div class="campo"><span>Produtos em cada carrossel</span><input id="sQtd" type="number" min="4" max="30" value="${S.qtd}"></div>
+      <div class="sub">Para pôr produto no carrossel de destaques: aba Produtos › selecione › Destacar.</div></div>
+    <div class="cartao"><h3>Carrosséis da página inicial</h3><div class="sub" style="margin-bottom:8px">Use as setas para mudar a ordem; desmarque para esconder.</div>
+      ${ordem.map((k, n) => `<div class="linha" style="justify-content:space-between;border-top:1px solid var(--line);padding:7px 0">
+        <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" data-sv="${esc(k)}" ${S.escondidos.includes(k) ? "" : "checked"}><b>${esc(k)}</b><small style="color:var(--mut)">${nota[k] || (cats[k] + " produtos")}</small></label>
+        <span><button class="btn s" data-so="${n}" data-d="-1" ${n ? "" : "disabled"}>↑</button> <button class="btn s" data-so="${n}" data-d="1" ${n < ordem.length - 1 ? "" : "disabled"}>↓</button></span></div>`).join("")}
+    </div></div>
+    <div class="sub" style="margin-top:10px">As mudanças valem no site assim que você clicar em <b>Salvar alterações</b>. <a href="../acessorios/" target="_blank" style="color:var(--volt)">Ver o site</a></div>`;
+  const muda = () => { marcaSujo(); };
+  $("sFaixa").onchange = e => { S.faixa = e.target.value.trim(); muda(); };
+  $("sDest").onchange = e => { S.destaques_titulo = e.target.value.trim(); muda(); };
+  $("sQtd").onchange = e => { S.qtd = Math.max(4, Math.min(30, Number(e.target.value) || 14)); muda(); };
+  $("corpo").querySelectorAll("[data-sv]").forEach(c => c.onchange = () => { const k = c.dataset.sv; S.escondidos = c.checked ? S.escondidos.filter(x => x !== k) : [...S.escondidos, k]; muda(); });
+  $("corpo").querySelectorAll("[data-so]").forEach(b => b.onclick = () => { const n = +b.dataset.so, m = n + +b.dataset.d; [ordem[n], ordem[m]] = [ordem[m], ordem[n]]; S.ordem = ordem; muda(); });
+}
+
 function abaLojas() {
   const cfg = (PC.ofertas && PC.ofertas.lojas) || { zerados: "mostrar", lojas: {} };
   const nomes = { centro: "Centro", plaza: "Plaza", miller: "Miller" };
@@ -356,7 +404,8 @@ document.addEventListener("click", async e => {
   const d = (s) => e.target.closest(s);
   let b;
   if (d("[data-fecha]")) return fechaJanela();
-  if ((b = d("[data-aba]"))) { aba = b.dataset.aba; return desenha(); }
+  if ((b = d("[data-aba]"))) { aba = b.dataset.aba; history.replaceState(null, "", "#" + aba); return desenha(); }
+  if ((b = d("[data-editar]"))) return editarProduto(b.dataset.editar);
   if ((b = d("[data-tipo]"))) { tipo = b.dataset.tipo; filtro = ""; sel.clear(); return desenha(); }
   if ((b = d("[data-cat]"))) { filtro = b.dataset.cat; return abaProdutos(); }
   if ((b = d("tbody tr[data-k]")) && e.target.type !== "checkbox") { const k = b.dataset.k; sel.has(k) ? sel.delete(k) : sel.add(k); return abaProdutos(); }

@@ -40,16 +40,20 @@
 
   // acessórios: troca o preço, marca "de/por", esconde ocultos, liga destaques, cria os combos como produtos
   PC.aplicaAcessorios = function (itens) {
-    const o = PC.ofertas, ocultos = new Set(o.ocultos), dest = new Set(o.destaques);
+    const o = PC.ofertas, ocultos = new Set(o.ocultos), dest = new Set(o.destaques), ed = o.edicoes || {};
     const L = itens.filter(it => !ocultos.has(PC.kAce(it)));
     for (const it of L) {
+      const k = it.k = PC.kAce(it), e = ed[k]; // chave pelo nome original, antes de qualquer edição
       if (it.p0 === undefined) it.p0 = it.p;
+      if (e && e.p) it.p0 = e.p; // preço editado no painel
       it.p = it.p0; it.selo = ""; it.promo = false;
       const x = PC.promoAce(it, it.p0);
       if (x) { it.p = x.preco; it.selo = selo(x, it.p0); it.promo = true; }
-      if (dest.has(PC.kAce(it))) it.destaque = true;
+      if (dest.has(k)) it.destaque = true;
+      if (e && e.n) it.n = e.n;
+      if (e && e.r) it.r = e.r;
     }
-    const porChave = new Map(L.map(it => [PC.kAce(it), it]));
+    const porChave = new Map(L.map(it => [it.k, it]));
     for (const c of o.combos || []) {
       const partes = c.itens.map(i => ({ ...i, it: porChave.get(i.chave) }));
       if (partes.some(x => x.chave.startsWith("a:") && !x.it)) continue; // algum acessório do combo saiu da loja: combo some
@@ -98,6 +102,10 @@
   .pc-mod .pc-ok{background:#ffe01a;color:#0c0c0d}.pc-mod .pc-no{background:#2a2a2e;color:#fff}.pc-mod .pc-err{color:#ff8a8a;min-height:18px;font-size:13px}
   body.pc-f-codigo .pc-cod{display:block!important}
   .pc-cod{display:none;font:500 11px "IBM Plex Mono",monospace;color:#888;margin-top:2px}`;
+  // atalhos do painel conforme a permissão de cada um
+  const ICO_P = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>`;
+  const atalhos = () => [["produtos", "Produtos e promoções", "produtos"], ["site", "Personalizar o site", "produtos"], ["fotos", "Fotos e garantias", "fotos"],
+    ["lojas", "Lojas", "lojas"], ["acesso", "Acesso da equipe", "permissoes"]].filter(x => PC.funcoes.includes(x[2]));
   function barra() {
     let el = document.querySelector(".pc-eq");
     if (!el) { const s = document.createElement("style"); s.textContent = css; document.head.appendChild(s); el = document.createElement("div"); el.className = "pc-eq"; }
@@ -109,8 +117,9 @@
       const ICO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`;
       topo.innerHTML = !PC.usuario
         ? `<button class="conta" data-pc="entrar" title="Área da equipe">${ICO}<span>Entrar</span></button>`
-        : `<details class="conta-m"><summary class="conta">${ICO}<span>${PC.usuario.nome.split(" ")[0]}</span></summary><div class="conta-l">`
-          + (PC.funcoes.includes("produtos") ? `<a href="${raizT}painel/">Painel de produtos</a>` : "")
+        : (atalhos().length && !location.pathname.includes("/painel/") ? `<a class="conta pc-painel" href="${raizT}painel/#${atalhos()[0][0]}">${ICO_P}<span>Painel</span></a>` : "")
+          + `<details class="conta-m"><summary class="conta">${ICO}<span>${PC.usuario.nome.split(" ")[0]}</span></summary><div class="conta-l">`
+          + atalhos().map(([h, n]) => `<a href="${raizT}painel/#${h}">${n}</a>`).join("")
           + `<button data-pc="sair">Sair</button></div></details>`;
       return;
     }
@@ -120,7 +129,7 @@
     const raiz = location.pathname.includes("/acessorios/") || location.pathname.includes("/p/") || location.pathname.includes("/painel/") ? "../" : "";
     if (!PC.usuario) { el.innerHTML = `<button data-pc="entrar" class="pc-x" title="Área da equipe">Equipe</button>`; return; }
     el.innerHTML = `<button class="pc-on" data-pc="sair" title="Sair">${PC.usuario.nome.split(" ")[0]} · sair</button>`
-      + (PC.funcoes.includes("produtos") && !location.pathname.includes("/painel/") ? `<a href="${raiz}painel/">Painel de produtos</a>` : "");
+      + (atalhos().length && !location.pathname.includes("/painel/") ? `<a href="${raiz}painel/#${atalhos()[0][0]}">Painel</a>` : "");
   }
   function modalLogin() {
     const m = document.createElement("div"); m.className = "pc-mod";

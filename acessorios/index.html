@@ -93,6 +93,7 @@ img{display:block}
 .fila .mais b{font:800 26px var(--display)}
 @media(max-width:520px){.fila{gap:10px}.fila .card{flex-basis:44vw}.fila .mais{flex-basis:30vw}.trilho h3{font-size:18px}}
 .lojasel[hidden],.barra[hidden]{display:none!important}
+#pcTopo{display:flex;gap:8px;flex:none}a.conta{text-decoration:none}.pc-painel{background:var(--volt);color:var(--ink)!important;border-color:var(--volt)!important}
 
 /* seletor de loja */
 .lojasel{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:18px 0 0}
@@ -275,7 +276,7 @@ footer .lj a{color:#fff;border:1px solid #ffffff2a;border-radius:12px;padding:9p
   <button class="cartbtn" id="abreCart" aria-label="Abrir carrinho"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h15l-1.5 9h-12z"/><path d="M6 7 5 3H2"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg><b id="nCart">0</b></button>
 </div></header>
 
-<div class="faixa"><div class="w">Monte o carrinho, envie pelo WhatsApp e retire na loja Plug.</div></div>
+<div class="faixa"><div class="w" id="faixa">Monte o carrinho, envie pelo WhatsApp e retire na loja Plug.</div></div>
 
 <main class="w">
   <div class="lojasel"><span>Estoque da loja</span><div class="seg" id="lojaSel"></div></div>
@@ -408,14 +409,19 @@ function desenha(){const t=sa($("q").value.trim());
   $("grade").innerHTML=L.length?L.map(i=>cartao(i)).join("")
   :`<div class="vazio"><b>Nenhum produto encontrado</b>Fale com a loja pelo WhatsApp que procuramos para você.</div>`}
 /* página inicial: um carrossel por grupo com os mais vendidos (arrasta para o lado para ver mais) */
-const POR_TRILHO=14;
-function trilhos(L){const g={};L.forEach(i=>(g[i.cat]=g[i.cat]||[]).push(i));
-  const P=L.filter(i=>i.promo&&!i.combo);
+/* personalização (painel › Personalizar o site): faixa, ordem/escondidos dos carrosséis, quantidade, destaques */
+const SITE=()=>(window.PlugConta&&PlugConta.ofertas&&PlugConta.ofertas.site)||{};
+function trilhos(L){const S=SITE(),POR_TRILHO=S.qtd||14,g={};L.forEach(i=>(g[i.cat]=g[i.cat]||[]).push(i));
+  const P=L.filter(i=>i.promo&&!i.combo),DS=L.filter(i=>i.destaque&&!i.combo);
   const ord=Object.keys(g).filter(k=>k!=="Combos").sort((a,b)=>g[b].length-g[a].length);
-  const T=[...(g.Combos?[["Combos",g.Combos]]:[]),...(P.length?[["Promoções",P]]:[]),...ord.map(k=>[k,g[k]])];
+  // cada carrossel: {id (nome fixo usado na ordem), t (título), its, todos (tem "ver todos")}
+  let T=[...(DS.length?[{id:"Destaques",t:S.destaques_titulo||"Destaques",its:DS}]:[]),...(g.Combos?[{id:"Combos",t:"Combos",its:g.Combos,todos:1}]:[]),
+    ...(P.length?[{id:"Promoções",t:"Promoções",its:P,todos:1}]:[]),...ord.map(k=>({id:k,t:k,its:g[k],todos:1}))];
+  const esc_=new Set(S.escondidos||[]),pos=k=>{const n=(S.ordem||[]).indexOf(k);return n<0?999:n};
+  T=T.filter(x=>!esc_.has(x.id)).map((x,n)=>({...x,n})).sort((a,b)=>(pos(a.id)-pos(b.id))||(a.n-b.n));
   if(!T.length)return`<div class="vazio"><b>Nenhum produto encontrado</b>Fale com a loja pelo WhatsApp que procuramos para você.</div>`;
-  return T.map(([k,its])=>`<section class="trilho"><div class="tt"><h3>${k}</h3><button class="vt" data-vt="${k}">Ver todos (${its.length})</button></div>
-    <div class="fila">${its.slice(0,POR_TRILHO).map(i=>cartao(i,true)).join("")}${its.length>POR_TRILHO?`<button class="mais" data-vt="${k}"><b>+${its.length-POR_TRILHO}</b>ver todos</button>`:""}</div></section>`).join("")}
+  return T.map(({id:k,t:tit,its,todos})=>`<section class="trilho"><div class="tt"><h3>${tit}</h3>${todos?`<button class="vt" data-vt="${k}">Ver todos (${its.length})</button>`:""}</div>
+    <div class="fila">${its.slice(0,POR_TRILHO).map(i=>cartao(i,true)).join("")}${its.length>POR_TRILHO&&todos?`<button class="mais" data-vt="${k}"><b>+${its.length-POR_TRILHO}</b>ver todos</button>`:""}</div></section>`).join("")}
 function cartao(i,mini){const fs=mini?i.fs.slice(0,1):i.fs;return `<article class="card" data-id="${i.id}">
     ${i.promo||i.combo?`<span class="tag promo">${i.combo?"COMBO ":""}${i.selo}</span>`:!temAqui(i)&&(equipe()||zerados()==="encomenda")?`<span class="tag enc">${equipe()?"SEM ESTOQUE":"SOB ENCOMENDA"}</span>`:""}${!mini&&i.fs.length>1?`<span class="nfotos">${i.fs.length} fotos</span>`:""}
     <div class="im"><button class="comp" data-comp="${i.id}" aria-label="Compartilhar">${COMP}</button>${i.gar?`<span class="gar">${ESCUDO}Garantia 6 meses</span>`:""}<div class="rolo">${fs.map((f,k)=>`<img src="${f}" alt="${k?"":i.n.replace(/"/g,"")}" loading="lazy">`).join("")}</div>
@@ -877,7 +883,7 @@ mostraSeletor();
 seletorLoja();rodape();cats();desenha();atualizaCart();
 /* promoções, combos e área da equipe (Academia): aplica por cima do preço normal quando chegar */
 const BASE=D.itens.map(i=>({...i}));
-PlugConta.quandoMudar(PC=>{const k=atual&&chave(atual);mostraSeletor();
+PlugConta.quandoMudar(PC=>{const k=atual&&chave(atual);mostraSeletor();if(SITE().faixa)$("faixa").textContent=SITE().faixa;
   D.itens=PC.aplicaAcessorios(BASE.map(i=>({...i})));
   D.itens.forEach((it,i)=>{it.id=i;it.top=!!it.destaque;it.slug=it.slug||sa(it.n).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")});
   [...D.itens].filter(i=>!i.combo).sort((a,b)=>b.v-a.v).slice(0,Math.max(8,Math.round(D.itens.length*.08))).forEach(it=>{if(it.v>0)it.top=true});
