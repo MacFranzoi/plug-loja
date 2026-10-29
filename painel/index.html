@@ -84,6 +84,9 @@ input[type=checkbox]{width:18px;height:18px;accent-color:#ffe01a;cursor:pointer}
 .citens span{flex:1}
 .citens input{width:60px}
 @media(max-width:700px){th{top:104px}.oc{display:none}td.f img{width:34px;height:34px}.top h1{font-size:19px}}
+.opcao{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line,#2a2a2e);border-radius:10px;margin-bottom:8px;cursor:pointer}
+.opcao small{display:block;color:var(--mut);font-size:13px;margin-top:2px}.opcao input{margin-top:3px}
+.campo{display:block;font-size:13px;color:var(--mut);margin-bottom:10px}.campo input{display:block;width:100%;margin-top:4px;box-sizing:border-box}
 </style>
 </head>
 <body>
@@ -155,11 +158,11 @@ function desenha() {
   const y = window.scrollY;
   $("app").innerHTML = `<header><div class="w"><div class="top"><h1>Painel de <i>produtos</i></h1>
       <span class="quem">${esc(PC.usuario.nome)}</span><a class="btn s" href="../acessorios/" target="_blank">Ver acessórios</a><a class="btn s" href="../" target="_blank">Ver celulares</a></div>
-    <nav class="abas">${[["produtos", "Produtos", LIN.length], ["promos", "Promoções", nP], ["combos", "Combos", nC], ...(PC.pode("permissoes") ? [["acesso", "Acesso da equipe", ""]] : []), ["hist", "Histórico", ""]]
+    <nav class="abas">${[["produtos", "Produtos", LIN.length], ["promos", "Promoções", nP], ["combos", "Combos", nC], ...(PC.pode("lojas") ? [["lojas", "Lojas", ""]] : []), ...(PC.pode("permissoes") ? [["acesso", "Acesso da equipe", ""]] : []), ["hist", "Histórico", ""]]
       .map(([k, t, n]) => `<button data-aba="${k}" class="${aba === k ? "on" : ""}">${t}${n !== "" ? `<b>${n}</b>` : ""}</button>`).join("")}</nav></div></header>
   <main class="w" id="corpo"></main>
   <div class="salvar ${sujo ? "on" : ""}"><button class="btn y" data-acao="salvar">Salvar alterações</button></div>`;
-  ({ produtos: abaProdutos, promos: abaPromos, combos: abaCombos, acesso: abaAcesso, hist: abaHist })[aba]();
+  ({ produtos: abaProdutos, promos: abaPromos, combos: abaCombos, acesso: abaAcesso, lojas: abaLojas, hist: abaHist })[aba]();
   window.scrollTo(0, y);
 }
 
@@ -219,6 +222,29 @@ function abaCombos() {
 }
 const precoAtual = k => { const l = LIN.find(l => l.k === k); return l ? l.preco : null; };
 const somaCombo = c => c.itens.reduce((s, i) => s + (precoAtual(i.chave) ?? i.preco ?? 0) * i.qtd, 0);
+
+function abaLojas() {
+  const cfg = (PC.ofertas && PC.ofertas.lojas) || { zerados: "mostrar", lojas: {} };
+  const nomes = { centro: "Centro", plaza: "Plaza", miller: "Miller" };
+  const conta = s => ACE.filter(i => (i.e || []).includes(s)).length, nenhuma = ACE.filter(i => !i.combo && !(i.e || []).length).length;
+  const op = [["mostrar", "Mostrar normal", "O produto aparece como qualquer outro. O cliente vê em quais lojas tem."],
+    ["encomenda", "Mostrar como sob encomenda", "Aparece com o selo SOB ENCOMENDA e o pedido no WhatsApp sai marcado."],
+    ["esconder", "Esconder", "O cliente não vê. Quem está logado na equipe continua vendo tudo."]];
+  $("corpo").innerHTML = `<div class="cartao"><h3>Produto sem estoque</h3>
+    <div class="sub" style="margin:4px 0 12px">Vale para a loja escolhida no seletor do site (ou para nenhuma loja, quando o cliente vê "Todas"). Hoje ${nenhuma} de ${ACE.length} acessórios estão zerados em todas as lojas.</div>
+    ${op.map(([k, n, d]) => `<label class="opcao"><input type="radio" name="zer" value="${k}" ${cfg.zerados === k ? "checked" : ""}><span><b>${n}</b><small>${d}</small></span></label>`).join("")}</div>
+  <div class="grid2">${Object.keys(nomes).map(s => { const l = (cfg.lojas || {})[s] || {};
+    return `<div class="cartao" data-loja="${s}"><h3>${nomes[s]}</h3><div class="sub" style="margin-bottom:10px">${conta(s)} acessórios com estoque</div>
+      <label class="campo">WhatsApp (com 55 e DDD)<input data-w value="${esc(l.whatsapp || "")}" placeholder="5511999999999" inputmode="numeric"></label>
+      <label class="campo">Endereço<input data-end value="${esc(l.endereco || "")}" placeholder="Rua, número, bairro, cidade"></label></div>`; }).join("")}</div>
+  <div class="linha" style="justify-content:flex-end"><button class="btn y" id="salvaLojas">Salvar lojas</button></div>`;
+  $("salvaLojas").onclick = async () => {
+    const corpo = { zerados: ($("corpo").querySelector("[name=zer]:checked") || {}).value || "mostrar", lojas: {} };
+    $("corpo").querySelectorAll("[data-loja]").forEach(c => corpo.lojas[c.dataset.loja] = { whatsapp: c.querySelector("[data-w]").value, endereco: c.querySelector("[data-end]").value });
+    try { const r = await PC.chama("/api/loja/lojas", { method: "PUT", body: JSON.stringify(corpo) }); PC.ofertas.lojas = r.lojas; toast("Lojas salvas · já vale no site"); abaLojas(); }
+    catch (e) { toast(e.message, true); }
+  };
+}
 
 let PERM = null;
 async function abaAcesso() {
